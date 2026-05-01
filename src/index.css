@@ -1,0 +1,197 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Serif+Display:ital@0;1&family=Patrick+Hand&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap');
+@import "tailwindcss";
+
+/* ============================================================
+   PIPER CONNOLLY — BEAUTIFUL LIFE
+   Design Tokens + Base Styles
+   ============================================================ */
+
+:root {
+  /* Core palette */
+  --color-background:        #F0E9DE;
+  --color-paper:             #FAF6F0;
+  --color-paper-soft:        #F5EFE6;
+  --color-ink:               #2A2420;
+  --color-ink-muted:         #6B5E56;
+  --color-oxblood:           #6B1A1A;
+  --color-piper-red:         #B83030;
+  --color-bone:              #E8DDD0;
+  --color-cream:             #F5EFE6;
+  --color-sepia:             #9C7B5A;
+  --color-charcoal:          #3A3535;
+  --color-muted-aqua:        #7BA3A0;
+  --color-soft-blue:         #A8BDD6;
+  --color-dusty-lavender:    #BBA8CC;
+  --color-pale-yellow:       #E8DCA0;
+  --color-muted-green:       #8DAA8E;
+  --color-rose-bisque:       #D4A098;
+  --color-border-soft:       rgba(155, 120, 90, 0.18);
+  --color-glow:              rgba(232, 200, 140, 0.55);
+  --color-holographic:       linear-gradient(135deg, #f0e0ff 0%, #c8e8ff 20%, #d0ffe8 40%, #fff8c8 60%, #ffd0e8 80%, #e8c8ff 100%);
+
+  /* Active color story (overridden by JS) */
+  --story-primary:           var(--color-piper-red);
+  --story-secondary:         var(--color-oxblood);
+  --story-accent:            var(--color-sepia);
+
+  /* Typography */
+  --font-serif:              'Cormorant Garamond', Georgia, serif;
+  --font-display:            'DM Serif Display', 'Playfair Display', Georgia, serif;
+  --font-hand:               'Caveat', cursive;
+  --font-typewriter:         'Special Elite', monospace;
+  --font-body:               'Patrick Hand', sans-serif;
+  --font-classic:            'Playfair Display', Georgia, serif;
+
+  /* Spacing */
+  --radius-sm:               6px;
+  --radius-md:               12px;
+  --radius-lg:               20px;
+  --radius-xl:               32px;
+
+  /* Shadows */
+  --shadow-soft:             0 4px 24px rgba(42, 36, 32, 0.10);
+  --shadow-card:             0 8px 40px rgba(42, 36, 32, 0.13);
+  --shadow-deep:             0 16px 64px rgba(42, 36, 32, 0.18);
+  --shadow-glow:             0 0 40px rgba(184, 130, 80, 0.22);
+}
+
+/* ============================================================
+   RESET + BASE
+   ============================================================ */
+
+
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-background);
+  color: var(--color-ink);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Paper texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   HOLOGRAPHIC CD SHIMMER
+   ============================================================ */
+
+@keyframes holographic-spin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes cd-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes float-doodle {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33%       { transform: translateY(-8px) rotate(2deg); }
+  66%       { transform: translateY(-4px) rotate(-1deg); }
+}
+
+@keyframes glow-pulse {
+  0%, 100% { text-shadow: 0 0 30px rgba(232, 200, 140, 0.55), 0 0 60px rgba(232, 200, 140, 0.30); }
+  50%       { text-shadow: 0 0 50px rgba(232, 200, 140, 0.80), 0 0 100px rgba(232, 200, 140, 0.45); }
+}
+
+@keyframes shimmer-slide {
+  0%   { transform: translateX(-100%) rotate(35deg); }
+  100% { transform: translateX(300%) rotate(35deg); }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--color-bone); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-sepia); }
+
+/* ============================================================
+   RANGE INPUT
+   ============================================================ */
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--color-bone);
+  border-radius: 99px;
+  outline: none;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: var(--color-oxblood);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(107, 26, 26, 0.30);
+  transition: transform 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+/* ============================================================
+   CD HOLOGRAPHIC LAYER
+   ============================================================ */
+
+.cd-holo {
+  background: conic-gradient(
+    from 0deg,
+    hsl(300, 60%, 85%) 0deg,
+    hsl(260, 60%, 90%) 30deg,
+    hsl(200, 70%, 88%) 60deg,
+    hsl(160, 60%, 87%) 90deg,
+    hsl(120, 50%, 87%) 120deg,
+    hsl(80, 60%, 88%) 150deg,
+    hsl(40, 70%, 88%) 180deg,
+    hsl(20, 65%, 87%) 210deg,
+    hsl(0, 60%, 87%) 240deg,
+    hsl(340, 60%, 87%) 270deg,
+    hsl(320, 60%, 86%) 300deg,
+    hsl(300, 60%, 85%) 360deg
+  );
+  opacity: 0.55;
+  mix-blend-mode: screen;
+  border-radius: 50%;
+  animation: holographic-spin 8s linear infinite;
+  background-size: 200% 200%;
+}
