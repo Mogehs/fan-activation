@@ -174,13 +174,13 @@ export default function CDCanvas({
   }, [canvasRef, saveSnapshot]);
 
   // ---------- ADD TEXT ----------
-  const addText = useCallback((fontFamily, color) => {
+  const addText = useCallback((fontFamily, color, initialText) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const font = FONTS.find(f => f.family === fontFamily) || FONTS[0];
 
     const isMobile = window.innerWidth < 768;
-    const text = new fabric.IText('type here...', {
+    const text = new fabric.IText(initialText || 'type here...', {
       left: canvas.width / 2,
       top:  canvas.height / 2,
       originX: 'center',

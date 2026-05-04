@@ -415,6 +415,7 @@ export default function DecoratorLayout() {
                 onRedo={undoFns.redo}
                 onClearAll={() => { canvasApi?.clearAll?.(); }}
                 onSave={handleSaveDisc}
+                onClose={() => setShowMobileSettings(false)}
                 isMobile={true}
               />
             </div>

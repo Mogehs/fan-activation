@@ -25,6 +25,7 @@ export default function SelectedItemPanel({
   const [rotation, setRotation] = useState(0);
   const [color, setColor] = useState('#B83030');
   const [fontFamily, setFontFamily] = useState('');
+  const [textContent, setTextContent] = useState('');
 
   const isText = selectedObject?.type === 'i-text' || selectedObject?.type === 'text';
 
@@ -34,8 +35,19 @@ export default function SelectedItemPanel({
     setScale(Math.round((selectedObject.scaleX || 1) * 100) / 100);
     setRotation(Math.round(selectedObject.angle || 0));
     setColor(selectedObject.fill || selectedObject.stroke || '#B83030');
-    if (isText) setFontFamily(selectedObject.fontFamily || '');
+    if (isText) {
+      setFontFamily(selectedObject.fontFamily || '');
+      setTextContent(selectedObject.text || '');
+    }
   }, [selectedObject, isText]);
+
+  const applyText = (val) => {
+    if (!selectedObject || !canvasRef?.current || !isText) return;
+    selectedObject.set({ text: val });
+    canvasRef.current.renderAll();
+    canvasRef.current.fire('object:modified');
+    setTextContent(val);
+  };
 
   const applyScale = (val) => {
     if (!selectedObject || !canvasRef?.current) return;
@@ -175,8 +187,20 @@ export default function SelectedItemPanel({
               </div>
             </div>
 
-            {/* Right Column: Fonts & Layers */}
+            {/* Right Column: Fonts & Layers & Text Content */}
             <div className="flex flex-col gap-4">
+              {/* Text content editor (mobile only) */}
+              {isMobile && isText && (
+                <div>
+                  <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">edit text</p>
+                  <textarea
+                    value={textContent}
+                    onChange={(e) => applyText(e.target.value)}
+                    className="h-20 w-full rounded-xl border border-[var(--color-border-soft)] bg-white/50 px-3 py-2 text-[14px] outline-none focus:border-[var(--color-sepia)]"
+                  />
+                </div>
+              )}
+
               {/* Font picker (text only) */}
               {isText ? (
                 <div>

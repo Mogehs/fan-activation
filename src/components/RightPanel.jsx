@@ -30,6 +30,7 @@ export default function RightPanel({
   onRedo,
   onClearAll,
   onSave,
+  onClose,
   isMobile = false,
 }) {
   const TITLE_MAP = {
@@ -83,6 +84,7 @@ export default function RightPanel({
               onFontChange={onFontChange}
               onColorChange={onColorChange}
               isMobile={isMobile}
+              onClose={onClose}
             />
           )}
           {activeTool === 'draw' && (

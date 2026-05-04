@@ -1,9 +1,18 @@
-// TextToolPanel.jsx — Controls for adding and styling text
-
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FONTS } from '../data/fonts';
 
-export default function TextToolPanel({ activeColor, activeFont, onAddText, onFontChange, onColorChange, isMobile = false }) {
+export default function TextToolPanel({ activeColor, activeFont, onAddText, onFontChange, onColorChange, isMobile = false, onClose }) {
+  const [text, setText] = useState('');
+
+  const handleAdd = () => {
+    if (!text.trim() && isMobile) return; // Prevent adding empty on mobile if typing in box
+    onAddText(activeFont, activeColor, text.trim() || 'type here...');
+    if (isMobile) {
+      setText(''); // Clear for next one
+      onClose?.(); // Close menu for better UX
+    }
+  };
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -14,15 +23,27 @@ export default function TextToolPanel({ activeColor, activeFont, onAddText, onFo
       <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
         {/* Left Column: Actions & Color */}
         <div className="flex flex-col gap-4">
+          {isMobile && (
+            <div className="flex flex-col gap-2">
+              <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">write lyrics</p>
+              <textarea
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder="write your lyrics here..."
+                className="h-20 w-full rounded-xl border border-[var(--color-border-soft)] bg-white/50 px-3 py-2 text-[14px] outline-none focus:border-[var(--color-sepia)]"
+              />
+            </div>
+          )}
+
           <div className="flex flex-col gap-2">
             <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">action</p>
             <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => onAddText(activeFont, activeColor)}
+              onClick={handleAdd}
               className="inline-flex h-12 w-full items-center justify-center rounded-[12px] bg-gradient-to-br from-[var(--color-oxblood)] to-[var(--color-piper-red)] px-3 text-center text-[12px] font-medium leading-tight tracking-[0.03em] text-[var(--color-cream)] shadow-[0_6px_24px_rgba(107,26,26,0.35)] transition-all duration-200 hover:shadow-[0_8px_32px_rgba(184,48,48,0.45)] [font-family:var(--font-hand)]"
             >
-              + ADD LYRICS
+              {isMobile ? '✦ ADD TO CD' : '+ ADD LYRICS'}
             </motion.button>
           </div>
 
