@@ -15,6 +15,7 @@ export default function DoodleToolPanel({
   onSizeChange,
   onUndoStroke,
   onClearDoodles,
+  isMobile = false,
 }) {
   return (
     <motion.div
@@ -23,7 +24,7 @@ export default function DoodleToolPanel({
       exit={{ opacity: 0, y: 6 }}
       className="flex flex-col gap-4"
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
         {/* Left Column: Brush Color */}
         <div className="flex flex-col gap-3">
           <div>

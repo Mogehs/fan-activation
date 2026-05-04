@@ -34,7 +34,7 @@ function MainFlow() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
+    <div className="flex flex-col h-dvh overflow-hidden">
       <main className="flex-1 relative overflow-hidden">
         <AnimatePresence mode="wait">
           {stage === STAGES.HERO && (
@@ -77,7 +77,8 @@ function MainFlow() {
           )}
         </AnimatePresence>
       </main>
-      <Footer />
+      {/* Hide footer on mobile in decorator stage to save space */}
+      {!(window.innerWidth < 768 && stage === STAGES.DECORATOR) && <Footer />}
     </div>
   );
 }

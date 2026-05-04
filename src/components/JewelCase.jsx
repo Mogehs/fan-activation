@@ -72,6 +72,18 @@ export default function JewelCase({ onOpen, isOpen }) {
   const lidRef = useRef(null);
   const containerRef = useRef(null);
   const wrapperRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+      setWindowWidth(window.innerWidth);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (isOpen && lidRef.current) {
@@ -112,10 +124,10 @@ export default function JewelCase({ onOpen, isOpen }) {
         justifyContent: 'center',
         height: '100%',
         background: 'var(--color-background)',
-        padding: '24px',
+        padding: isMobile ? '16px' : '24px',
         position: 'relative',
         overflow: 'hidden',
-        perspective: '2500px',
+        perspective: isMobile ? '1500px' : '2500px',
       }}
     >
       {/* Editorial Soft Lighting Background */}
@@ -143,7 +155,8 @@ export default function JewelCase({ onOpen, isOpen }) {
         <motion.div
           style={{
             position: 'relative',
-            width: 'clamp(320px, 80vw, 520px)',
+            width: isMobile ? 'min(90vw, 420px)' : 'clamp(320px, 70vw, 520px)',
+            maxWidth: isMobile ? 'none' : 'calc((100vh - 200px) * 1.18)',
             cursor: isOpen ? 'default' : 'pointer',
             transformStyle: 'preserve-3d',
           }}
@@ -236,7 +249,6 @@ export default function JewelCase({ onOpen, isOpen }) {
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)' }} />
               </div>
 
-              {/* CD Disc */}
               <div style={{ 
                 position: 'absolute',
                 top: '50%',
@@ -244,7 +256,7 @@ export default function JewelCase({ onOpen, isOpen }) {
                 transform: 'translate(-50%, -50%) translateZ(8px)',
                 zIndex: 2
               }}>
-                <CDDisc size={Math.min(360, window.innerWidth * 0.7)} spin={isOpen} />
+                <CDDisc size={Math.min(isMobile ? 300 : 360, windowWidth * 0.7)} spin={isOpen} />
               </div>
             </div>
           </div>

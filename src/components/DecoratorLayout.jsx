@@ -1,7 +1,7 @@
 // DecoratorLayout.jsx — 3-panel decorator workspace
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import CDCanvas from './CDCanvas';
 import ToolRail from './ToolRail';
 import RightPanel from './RightPanel';
@@ -27,23 +27,88 @@ export default function DecoratorLayout() {
   const [showModal,   setShowModal]   = useState(false);
   const [unlocked,    setUnlocked]    = useState(false);
   const [pendingPng,  setPendingPng]  = useState(null);
+  const [pendingSvg,  setPendingSvg]  = useState(null);
   const [isMobile,    setIsMobile]    = useState(() => window.innerWidth < 768);
 
   const [canvasApi, setCanvasApi] = useState(null);
+  const [showMobileSettings, setShowMobileSettings] = useState(false);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
   const canvasRef    = useRef(null);
+  const hasLoadedRef = useRef(false);
 
   const { activeStory, setStory, allStories } = useColorStory();
 
-  // When canvas is ready, store its API
-  const handleCanvasReady = useCallback((api) => {
+  // ---------- PERSISTENCE LOGIC ----------
+  
+  // Save everything to localStorage
+  const saveToLocalStorage = useCallback(() => {
+    // CRITICAL: Do not save until we are CERTAIN we have finished the initial load attempt
+    if (!canvasApi || !hasLoadedRef.current) return;
+    
+    try {
+      const state = {
+        canvasJSON: canvasApi.toJSON(),
+        cdBaseColor,
+        activeStory,
+        activeColor,
+        timestamp: Date.now()
+      };
+      localStorage.setItem('piper_connolly_cd_state', JSON.stringify(state));
+    } catch (e) {
+      console.warn("Failed to save state to localStorage", e);
+    }
+  }, [canvasApi, cdBaseColor, activeStory, activeColor]);
+
+  // Load from localStorage
+  const loadFromLocalStorage = useCallback(async (api) => {
+    const saved = localStorage.getItem('piper_connolly_cd_state');
+    if (!saved) {
+      hasLoadedRef.current = true;
+      return;
+    }
+    try {
+      const state = JSON.parse(saved);
+      if (state.cdBaseColor) setCdBaseColor(state.cdBaseColor);
+      if (state.activeStory) setStory(state.activeStory);
+      if (state.activeColor) setActiveColor(state.activeColor);
+      
+      if (state.canvasJSON && api) {
+        // Wait for objects to be fully loaded into Fabric
+        await api.loadFromJSON(state.canvasJSON);
+      }
+    } catch (e) {
+      console.error("Failed to load saved state", e);
+    } finally {
+      // Mark as loaded ONLY after everything is finished
+      // This prevents the saveToLocalStorage from overwriting with empty data during init
+      setTimeout(() => {
+        hasLoadedRef.current = true;
+      }, 100);
+    }
+  }, [setStory]);
+
+  // When canvas is ready, store its API and LOAD saved state
+  const handleCanvasReady = useCallback(async (api) => {
     setCanvasApi(api);
     canvasRef.current = api.canvasRef;
-  }, []);
+    await loadFromLocalStorage(api);
+  }, [loadFromLocalStorage]);
 
+  // Auto-save on modification
   const handleUndoRedoChange = useCallback(({ canUndo, canRedo, undo, redo }) => {
     setUndoState({ canUndo, canRedo });
     setUndoFns({ undo, redo });
-  }, []);
+    // This is triggered on every modification
+    if (hasLoadedRef.current) {
+      saveToLocalStorage();
+    }
+  }, [saveToLocalStorage]);
+
+  useEffect(() => {
+    if (hasLoadedRef.current) {
+      saveToLocalStorage();
+    }
+  }, [cdBaseColor, activeStory, activeColor, saveToLocalStorage]);
 
   // Story select — does NOT wipe canvas
   const handleStorySelect = useCallback((storyId) => {
@@ -54,9 +119,7 @@ export default function DecoratorLayout() {
   }, [setStory]);
 
   const handleAddSticker = useCallback((stickerId) => {
-    // Immediately add the sticker to the center of the canvas
     canvasApi?.addSticker?.(stickerId, activeColor);
-    // Switch to select tool so the user can easily move the newly added sticker
     setActiveTool('select');
     setActiveSticker(null);
   }, [activeColor, canvasApi]);
@@ -69,15 +132,16 @@ export default function DecoratorLayout() {
   // Save / download flow
   const handleSaveDisc = useCallback(async () => {
     if (!canvasApi) return;
-    canvasApi.deselectAll?.();
     const png = await canvasApi.exportPng?.();
+    const svg = await canvasApi.exportSvg?.();
     setPendingPng(png);
+    setPendingSvg(svg);
     if (!unlocked) {
       setShowModal(true);
     } else {
       if (png) shareOrDownload(png);
     }
-  }, [unlocked, canvasApi]);
+  }, [canvasApi, unlocked]);
 
   const handleModalSuccess = useCallback(() => {
     setShowModal(false);
@@ -96,7 +160,11 @@ export default function DecoratorLayout() {
     if (tool !== 'stickers') {
       setActiveSticker(null);
     }
-  }, [canvasApi]);
+    // Auto-open settings on mobile for specific tools (except select)
+    if (isMobile && (tool === 'text' || tool === 'draw' || tool === 'colors')) {
+      setShowMobileSettings(true);
+    }
+  }, [canvasApi, isMobile]);
 
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 768);
@@ -112,13 +180,13 @@ export default function DecoratorLayout() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100dvh',
+        height: '100%',
         background: 'var(--color-background)',
         overflow: 'hidden',
       }}
     >
       {/* Main 3-panel area */}
-      <div className="flex min-h-0 flex-[3] gap-2 overflow-hidden p-2">
+      <div className={`flex min-h-0 ${isMobile ? 'flex-col flex-1' : 'flex-[3] p-2'} gap-2 overflow-hidden`}>
         {/* Left tool rail */}
         {!isMobile && (
           <div className="h-full self-stretch shrink-0 overflow-hidden border border-[var(--color-border-soft)] bg-[var(--color-paper)] rounded-2xl shadow-sm">
@@ -127,7 +195,7 @@ export default function DecoratorLayout() {
         )}
 
         {/* Center canvas area */}
-        <div className="relative flex min-w-0 flex-1 flex-col items-center justify-center overflow-hidden border border-[var(--color-border-soft)] bg-[var(--color-paper)] p-[clamp(12px,2vw,20px)] rounded-2xl shadow-sm" style={{
+        <div className={`relative flex min-w-0 flex-1 flex-col items-center justify-center overflow-hidden border-[var(--color-border-soft)] bg-[var(--color-paper)] ${isMobile ? 'border-b rounded-none min-h-[45vh]' : 'border p-[clamp(12px,2vw,20px)] rounded-2xl shadow-sm'}`} style={{
           flex: 1,
           minWidth: 0,
         }}>
@@ -137,11 +205,62 @@ export default function DecoratorLayout() {
               activeSticker={activeSticker}
               brushSize={brushSize}
               cdColor={cdBaseColor}
-              onObjectSelected={setSelectedObj}
+              onObjectSelected={(obj) => {
+                setSelectedObj(obj);
+                // Removed: auto-opening settings on mobile. User prefers manual canvas controls.
+              }}
               onSelectionCleared={() => setSelectedObj(null)}
               onCanvasReady={handleCanvasReady}
               onUndoRedoChange={handleUndoRedoChange}
             />
+
+            {/* Mobile Action Buttons */}
+            {isMobile && (
+              <div className="absolute bottom-4 right-4 z-[10] flex flex-col gap-3">
+                <button
+                  onClick={() => setShowActionsMenu(!showActionsMenu)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-ink)] text-white shadow-xl"
+                >
+                  {showActionsMenu ? '✕' : '✦'}
+                </button>
+                <button
+                  onClick={() => setShowMobileSettings(!showMobileSettings)}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-oxblood)] text-white shadow-xl"
+                >
+                  {showMobileSettings ? '✕' : '⚙'}
+                </button>
+              </div>
+            )}
+
+            {/* Mobile Back Button */}
+            {isMobile && (
+              <button
+                onClick={() => window.location.reload()} // Quick way to return to hero in this simple stage-based app
+                className="absolute top-4 left-4 z-[10] flex h-10 px-3 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-[var(--color-border-soft)] text-[var(--color-ink)] text-[10px] font-medium uppercase tracking-widest [font-family:var(--font-hand)]"
+              >
+                ← Home
+              </button>
+            )}
+
+            {/* Mobile Floating Undo/Redo — Bottom Left (Symmetrical with Right side buttons) */}
+            {isMobile && (
+              <div className="absolute bottom-4 left-4 z-[10] flex flex-col gap-3">
+                <button
+                  onClick={undoFns.undo}
+                  disabled={!undoState.canUndo}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl border border-[var(--color-border-soft)] disabled:opacity-30 disabled:grayscale transition-all active:scale-90"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                </button>
+                <button
+                  onClick={undoFns.redo}
+                  disabled={!undoState.canRedo}
+                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl border border-[var(--color-border-soft)] disabled:opacity-30 disabled:grayscale transition-all active:scale-90"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
+                </button>
+              </div>
+            )}
         </div>
 
         {/* Right panel — desktop only */}
@@ -177,18 +296,18 @@ export default function DecoratorLayout() {
       </div>
 
       {/* Bottom area: Pretty Little Extras & Global Actions */}
-      <div className="flex flex-1 min-h-0 gap-2 overflow-hidden px-2 pb-2">
-        {/* Sticker tray card */}
-        <div className="flex-1 overflow-hidden border border-[var(--color-border-soft)] bg-[var(--color-paper)] rounded-2xl shadow-sm">
-          <StickerTray
-            onAddSticker={handleAddSticker}
-            activeColor={activeColor}
-            activeSticker={activeSticker}
-          />
-        </div>
+      {!isMobile && (
+        <div className="flex flex-1 min-h-0 gap-2 overflow-hidden px-2 pb-2">
+          {/* Sticker tray card */}
+          <div className="flex-1 overflow-hidden border border-[var(--color-border-soft)] bg-[var(--color-paper)] rounded-2xl shadow-sm">
+            <StickerTray
+              onAddSticker={handleAddSticker}
+              activeColor={activeColor}
+              activeSticker={activeSticker}
+            />
+          </div>
 
-        {/* Global Actions card */}
-        {!isMobile && (
+          {/* Global Actions card */}
           <div className="flex w-[320px] shrink-0 flex-col justify-center gap-2.5 border border-[var(--color-border-soft)] bg-[var(--color-paper)] p-3 rounded-2xl shadow-sm">
             <div className="flex flex-col gap-2">
               <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">GLOBAL ACTIONS</p>
@@ -225,12 +344,134 @@ export default function DecoratorLayout() {
               </motion.button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Mobile Sticker Tray (Only when tool is stickers) */}
+      {isMobile && activeTool === 'stickers' && !showMobileSettings && (
+        <div className="relative z-[10] h-40 shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)]">
+          <StickerTray
+            onAddSticker={handleAddSticker}
+            activeColor={activeColor}
+            activeSticker={activeSticker}
+          />
+        </div>
+      )}
+
+      {/* Mobile Bottom Settings Panel */}
+      <AnimatePresence>
+        {isMobile && showMobileSettings && (
+          <>
+            {/* Backdrop for mobile settings */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMobileSettings(false)}
+              className="fixed inset-0 z-[40] bg-black/20 backdrop-blur-[2px]"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed inset-x-0 bottom-0 z-[50] flex max-h-[85vh] flex-col rounded-t-[32px] border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] shadow-[0_-8px_40px_rgba(0,0,0,0.15)]"
+            >
+              {/* Drag Handle / Close Bar */}
+              <div className="relative flex w-full shrink-0 justify-center py-4" onClick={() => setShowMobileSettings(false)}>
+                <div className="h-1.5 w-12 rounded-full bg-[var(--color-border-soft)]" />
+                
+                {/* Explicit Close Button for Mobile */}
+                <button 
+                  onClick={() => setShowMobileSettings(false)}
+                  className="absolute right-6 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-paper-soft)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
+                >
+                  ✕
+                </button>
+              </div>
+            
+            <div className="flex-1 overflow-y-auto pb-12">
+              <RightPanel
+                activeTool={activeTool}
+                activeStory={activeStory}
+                allStories={allStories}
+                onStorySelect={handleStorySelect}
+                selectedObject={selectedObj}
+                canvasApi={canvasApi}
+                canvasRef={canvasApi?.canvasRef}
+                brushColor={brushColor}
+                brushSize={brushSize}
+                onBrushColorChange={(c) => { setBrushColor(c); canvasApi?.updateBrush(c, brushSize); }}
+                onBrushSizeChange={(s) => { setBrushSize(s); canvasApi?.updateBrush(brushColor, s); }}
+                activeFont={activeFont}
+                activeColor={activeColor}
+                onFontChange={setActiveFont}
+                onColorChange={setActiveColor}
+                cdColor={cdBaseColor}
+                onCdColorChange={setCdBaseColor}
+                canUndo={undoState.canUndo}
+                canRedo={undoState.canRedo}
+                onUndo={undoFns.undo}
+                onRedo={undoFns.redo}
+                onClearAll={() => { canvasApi?.clearAll?.(); }}
+                onSave={handleSaveDisc}
+                isMobile={true}
+              />
+            </div>
+          </motion.div>
+          </>
         )}
-      </div>
+      </AnimatePresence>
+
+      {/* Mobile Action Menu Overlay */}
+      <AnimatePresence>
+        {isMobile && showActionsMenu && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowActionsMenu(false)}
+              className="fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: 20, opacity: 0, scale: 0.9 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 20, opacity: 0, scale: 0.9 }}
+              className="fixed bottom-36 right-4 z-[70] flex flex-col gap-3 items-end"
+            >
+              <button
+                onClick={() => { setShowModal(true); setShowActionsMenu(false); }}
+                className="flex h-12 items-center gap-3 rounded-full bg-white px-5 text-[12px] font-medium uppercase tracking-widest text-[var(--color-ink)] shadow-xl [font-family:var(--font-hand)]"
+              >
+                ✉ Subscribe
+              </button>
+              <button
+                onClick={() => { handleSaveDisc(); setShowActionsMenu(false); }}
+                className="flex h-12 items-center gap-3 rounded-full bg-[var(--color-oxblood)] px-5 text-[12px] font-medium uppercase tracking-widest text-white shadow-xl [font-family:var(--font-hand)]"
+              >
+                ↓ Save PNG
+              </button>
+              <button
+                onClick={async () => {
+                  if (canvasApi) {
+                    const png = await canvasApi.exportPng?.();
+                    if (png) shareOrDownload(png);
+                  }
+                  setShowActionsMenu(false);
+                }}
+                className="flex h-12 items-center gap-3 rounded-full bg-white px-5 text-[12px] font-medium uppercase tracking-widest text-[var(--color-ink)] shadow-xl [font-family:var(--font-hand)]"
+              >
+                ✦ Share
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Mobile tool rail (bottom) */}
       {isMobile && (
-        <div className="shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)]">
+        <div className="relative z-[20] shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)]">
           <ToolRail activeTool={activeTool} onToolChange={handleToolChange} mobile={true} />
         </div>
       )}
@@ -245,8 +486,19 @@ export default function DecoratorLayout() {
       {/* Confirmation / download modal */}
       <ConfirmationState
         isOpen={unlocked && !!pendingPng}
-        onClose={() => setPendingPng(null)}
+        onClose={() => { setPendingPng(null); setPendingSvg(null); }}
         onDownload={handleDownload}
+        onDownloadSvg={() => {
+          if (pendingSvg) {
+            const blob = new Blob([pendingSvg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `piper-connolly-cd-${Date.now()}.svg`;
+            a.click();
+            URL.revokeObjectURL(url);
+          }
+        }}
         onShare={handleDownload}
       />
     </motion.div>

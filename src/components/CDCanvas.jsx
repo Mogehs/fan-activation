@@ -40,6 +40,8 @@ export default function CDCanvas({
     undoLastStroke,
     updateBrush,
     deselectAll,
+    toJSON,
+    loadFromJSON,
   } = useFabricCanvas({
     canvasElRef,
     containerRef,
@@ -86,7 +88,12 @@ export default function CDCanvas({
       undoLastStroke,
       updateBrush,
       deselectAll,
+      toJSON,
+      loadFromJSON,
       exportPng: () => exportCanvasAsPng(canvasRef.current, cdColor),
+      exportSvg: () => canvasRef.current?.toSVG({
+        viewBox: { x: 0, y: 0, width: canvasRef.current.width, height: canvasRef.current.height }
+      }),
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canvasRef.current]);
@@ -141,16 +148,17 @@ export default function CDCanvas({
       const imgHeight = img.height || targetSize;
       const scale = targetSize / Math.max(imgWidth, imgHeight);
       
+      const isMobile = window.innerWidth < 768;
       img.set({
         left: centerX - (imgWidth * scale) / 2 + (Math.random() - 0.5) * 20,
         top:  centerY - (imgHeight * scale) / 2 + (Math.random() - 0.5) * 20,
         scaleX: scale,
         scaleY: scale,
-        cornerSize: 8,
+        cornerSize: isMobile ? 24 : 8,
         transparentCorners: false,
         cornerColor: '#6B1A1A',
         borderColor: '#6B1A1A',
-        borderScaleFactor: 1.5,
+        borderScaleFactor: isMobile ? 2.5 : 1.5,
       });
       img.setControlVisible('ml', false);
       img.setControlVisible('mr', false);
@@ -171,6 +179,7 @@ export default function CDCanvas({
     if (!canvas) return;
     const font = FONTS.find(f => f.family === fontFamily) || FONTS[0];
 
+    const isMobile = window.innerWidth < 768;
     const text = new fabric.IText('type here...', {
       left: canvas.width / 2,
       top:  canvas.height / 2,
@@ -179,13 +188,13 @@ export default function CDCanvas({
       fontFamily: font.family.split(',')[0].replace(/['"]/g, '').trim(),
       fontSize: 28,
       fill: color || '#B83030',
-      cornerSize: 10,
+      cornerSize: isMobile ? 24 : 10,
       transparentCorners: false,
       cornerColor: '#6B1A1A',
       borderColor: '#6B1A1A',
-      borderScaleFactor: 2,
+      borderScaleFactor: isMobile ? 3 : 2,
       cursorColor: '#6B1A1A',
-      padding: 5,
+      padding: isMobile ? 12 : 5,
     });
 
     canvas.add(text);
@@ -203,8 +212,8 @@ export default function CDCanvas({
         position: 'relative',
         width: '100%',
         aspectRatio: '1/1',
-        maxWidth: 'min(400px, calc(100vh - 240px))',
-        maxHeight: 'min(400px, calc(100vh - 240px))',
+        maxWidth: window.innerWidth < 768 ? '90vw' : 'min(400px, calc(100vh - 240px))',
+        maxHeight: window.innerWidth < 768 ? '90vw' : 'min(400px, calc(100vh - 240px))',
         margin: '0 auto',
       }}
     >

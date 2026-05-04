@@ -264,6 +264,23 @@ export function useFabricCanvas({
     canvas.renderAll();
   }, []);
 
+  const toJSON = useCallback(() => {
+    return canvasRef.current?.toJSON(['clipPath', 'id', 'stickerType', 'fontFamily', 'name', 'selectable', 'hasControls']);
+  }, []);
+
+  const loadFromJSON = useCallback((json) => {
+    const canvas = canvasRef.current;
+    if (!canvas || !json) return Promise.resolve();
+    // Use a flag or just assume the batch load is fine.
+    // The loadFromJSON in v6 is a promise.
+    return canvas.loadFromJSON(json).then(() => {
+      canvas.renderAll();
+      // We don't necessarily need to trigger onCanvasModified here 
+      // if it's already triggered by the individual objects, 
+      // but we DO want to ensure the parent knows we are done.
+    });
+  }, []);
+
   return {
     canvasRef,
     addObject,
@@ -278,6 +295,8 @@ export function useFabricCanvas({
     undoLastStroke,
     updateBrush,
     deselectAll,
+    toJSON,
+    loadFromJSON,
   };
 }
 

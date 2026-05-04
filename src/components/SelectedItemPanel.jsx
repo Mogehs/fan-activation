@@ -19,6 +19,7 @@ export default function SelectedItemPanel({
   onBringToFront,
   onSendToBack,
   canvasRef,
+  isMobile = false,
 }) {
   const [scale, setScale] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -100,13 +101,13 @@ export default function SelectedItemPanel({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 8 }}
           transition={{ duration: 0.2 }}
-          className="flex flex-col gap-2.5 rounded-[10px] border border-[var(--color-border-soft)] bg-[var(--color-paper)] p-3"
+          className={`flex flex-col gap-2.5 rounded-[10px] border border-[var(--color-border-soft)] bg-[var(--color-paper)] ${isMobile ? 'p-2' : 'p-3'}`}
         >
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontStyle: 'italic', color: 'var(--color-sepia)', marginBottom: 4 }}>
             {isText ? 'text selected' : 'sticker selected'}
           </p>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
             {/* Left Column: Transformation & Color */}
             <div className="flex flex-col gap-4">
               {/* Size */}
@@ -214,7 +215,7 @@ export default function SelectedItemPanel({
           <div className="h-px w-full bg-[var(--color-border-soft)]" />
 
           {/* Bottom Area: Layers & Actions */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
             {/* Layer controls */}
             <div>
               <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">layering</p>

@@ -1,18 +1,26 @@
 // HeroSection.jsx — Premium landing hero with branding and doodle background
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
 const DOODLES = [
-  { type: 'star4', x: '8%',  y: '15%', size: 28, delay: 0,    rot: 15 },
-  { type: 'star4', x: '90%', y: '20%', size: 22, delay: 0.8,  rot: -10 },
-  { type: 'heart', x: '5%',  y: '70%', size: 20, delay: 1.2,  rot: -8 },
-  { type: 'heart', x: '93%', y: '65%', size: 18, delay: 0.4,  rot: 12 },
-  { type: 'star4', x: '15%', y: '85%', size: 16, delay: 1.8,  rot: 30 },
-  { type: 'swirl', x: '85%', y: '80%', size: 24, delay: 0.6,  rot: -20 },
-  { type: 'spark', x: '75%', y: '12%', size: 14, delay: 2.0,  rot: 0  },
-  { type: 'spark', x: '20%', y: '45%', size: 12, delay: 1.5,  rot: 45 },
-  { type: 'star4', x: '55%', y: '5%',  size: 10, delay: 2.5,  rot: -5 },
-  { type: 'swirl', x: '3%',  y: '40%', size: 18, delay: 1.0,  rot: 10 },
+  { type: 'star4', x: '8%',  y: '15%', size: 28, delay: 0,    rot: 15,  mobileX: '10%', mobileY: '10%', mobileSize: 20 },
+  { type: 'star4', x: '90%', y: '20%', size: 22, delay: 0.8,  rot: -10, mobileX: '85%', mobileY: '15%', mobileSize: 18 },
+  { type: 'heart', x: '5%',  y: '70%', size: 20, delay: 1.2,  rot: -8,  mobileX: '10%', mobileY: '75%', mobileSize: 16 },
+  { type: 'heart', x: '93%', y: '65%', size: 18, delay: 0.4,  rot: 12,  mobileX: '85%', mobileY: '70%', mobileSize: 14 },
+  { type: 'star4', x: '15%', y: '85%', size: 16, delay: 1.8,  rot: 30,  mobileX: '20%', mobileY: '88%', mobileSize: 12 },
+  { type: 'swirl', x: '85%', y: '80%', size: 24, delay: 0.6,  rot: -20, mobileX: '80%', mobileY: '85%', mobileSize: 18 },
+  { type: 'spark', x: '75%', y: '12%', size: 14, delay: 2.0,  rot: 0,   mobileX: '70%', mobileY: '8%',  mobileSize: 10 },
+  { type: 'spark', x: '20%', y: '45%', size: 12, delay: 1.5,  rot: 45,  mobileX: '15%', mobileY: '40%', mobileSize: 10 },
+  { type: 'star4', x: '55%', y: '5%',  size: 10, delay: 2.5,  rot: -5,  mobileX: '50%', mobileY: '5%',  mobileSize: 8  },
+  { type: 'swirl', x: '3%',  y: '40%', size: 18, delay: 1.0,  rot: 10,  mobileX: '5%',  mobileY: '35%', mobileSize: 14 },
+];
+
+const ARTIST_IMAGES = [
+  { src: '/piper-press.jpg',   x: '3%',   y: '10%', width: '320px', mobileWidth: '140px', rotate: -4,  duration: 40 },
+  { src: '/piper-press-2.jpg', x: '72%',  y: '8%',  width: '260px', mobileWidth: '120px', rotate: 6,   duration: 45 },
+  { src: '/piper-press-3.jpg', x: '5%',   y: '55%', width: '340px', mobileWidth: '150px', rotate: -8,  duration: 38 },
+  { src: '/piper-press-4.jpg', x: '68%',  y: '58%', width: '280px', mobileWidth: '130px', rotate: 3,   duration: 50 },
 ];
 
 function DoodleSVG({ type, size, color = 'var(--color-sepia)' }) {
@@ -48,6 +56,15 @@ function DoodleSVG({ type, size, color = 'var(--color-sepia)' }) {
 }
 
 export default function HeroSection({ onOpenCase }) {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <section
       style={{
@@ -59,7 +76,7 @@ export default function HeroSection({ onOpenCase }) {
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
-        padding: '40px 24px',
+        padding: isMobile ? '40px 20px' : '60px 40px',
       }}
     >
       {/* 1. ATMOSPHERIC CAMPAIGN GLOWS */}
@@ -128,14 +145,69 @@ export default function HeroSection({ onOpenCase }) {
         <motion.div
           key={i}
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.2, 0.15], y: [0, -10, 0] }}
+          animate={{ opacity: [0, 0.25, 0.15], y: [0, -15, 0], rotate: [d.rot, d.rot + 10, d.rot] }}
           transition={{
             opacity: { delay: d.delay, duration: 1.5 },
-            y: { delay: d.delay, duration: 8 + i, repeat: Infinity, ease: 'easeInOut' },
+            y: { delay: d.delay, duration: 6 + i, repeat: Infinity, ease: 'easeInOut' },
+            rotate: { delay: d.delay, duration: 10 + i, repeat: Infinity, ease: 'easeInOut' },
           }}
-          style={{ position: 'absolute', left: d.x, top: d.y, pointerEvents: 'none', zIndex: 2 }}
+          style={{ 
+            position: 'absolute', 
+            left: isMobile ? d.mobileX : d.x, 
+            top: isMobile ? d.mobileY : d.y, 
+            pointerEvents: 'none', 
+            zIndex: 2,
+            filter: isMobile ? 'blur(0.5px)' : 'none'
+          }}
         >
-          <DoodleSVG type={d.type} size={d.size} />
+          <DoodleSVG type={d.type} size={isMobile ? d.mobileSize : d.size} />
+        </motion.div>
+      ))}
+
+      {/* Artist Campaign Images (Floating) */}
+      {ARTIST_IMAGES.map((img, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0.9, rotate: img.rotate }}
+          animate={{ 
+            opacity: 0.75, 
+            scale: 1,
+            x: [0, 15, -10, 0],
+            y: [0, -20, 10, 0],
+            rotate: [img.rotate, img.rotate + 4, img.rotate - 3, img.rotate]
+          }}
+          transition={{
+            opacity: { duration: 2, delay: 0.5 + i * 0.3 },
+            scale: { duration: 2, delay: 0.5 + i * 0.3 },
+            x: { duration: img.duration, repeat: Infinity, ease: "easeInOut" },
+            y: { duration: img.duration * 0.8, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: img.duration * 1.2, repeat: Infinity, ease: "easeInOut" },
+          }}
+          style={{
+            position: 'absolute',
+            left: isMobile 
+              ? (i === 0 ? '-5%' : i === 1 ? '65%' : i === 2 ? '0%' : '70%') 
+              : img.x,
+            top: isMobile 
+              ? (i === 0 ? '12%' : i === 1 ? '18%' : i === 2 ? '62%' : '68%') 
+              : img.y,
+            width: isMobile ? img.mobileWidth : img.width,
+            zIndex: 3,
+            pointerEvents: 'none',
+            mixBlendMode: 'multiply',
+            filter: isMobile ? 'contrast(1.05) brightness(0.95)' : 'grayscale(0.1) contrast(1.1) brightness(0.9)',
+          }}
+        >
+          <img 
+            src={img.src} 
+            alt="Artist" 
+            style={{ 
+              width: '100%', 
+              height: 'auto', 
+              display: 'block',
+              filter: 'grayscale(0.2) contrast(1.1) brightness(0.9)',
+            }} 
+          />
         </motion.div>
       ))}
 
@@ -148,11 +220,11 @@ export default function HeroSection({ onOpenCase }) {
           transition={{ delay: 0.2, duration: 1.2 }}
           style={{
             fontFamily: 'var(--font-hand)',
-            fontSize: '15px',
+            fontSize: 'clamp(14px, 2vw, 18px)',
             color: 'var(--color-sepia)',
             letterSpacing: '0.4em',
             textTransform: 'lowercase',
-            marginBottom: 8,
+            marginBottom: 12,
           }}
         >
           piper connolly
@@ -166,7 +238,7 @@ export default function HeroSection({ onOpenCase }) {
             transition={{ delay: 0.5, duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
             style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(64px, 16vw, 120px)',
+              fontSize: 'clamp(72px, 22vw, 140px)',
               fontWeight: 300,
               fontStyle: 'italic',
               color: 'var(--color-ink)',
@@ -174,6 +246,7 @@ export default function HeroSection({ onOpenCase }) {
               letterSpacing: '-0.04em',
               position: 'relative',
               zIndex: 2,
+              textShadow: isMobile ? '0 0 20px rgba(255,255,255,0.4)' : 'none',
             }}
           >
             beautiful life
@@ -215,11 +288,11 @@ export default function HeroSection({ onOpenCase }) {
           transition={{ delay: 0.9, duration: 1 }}
           style={{
             fontFamily: 'var(--font-typewriter)',
-            fontSize: '11px',
+            fontSize: 'clamp(10px, 1.2vw, 12px)',
             color: 'var(--color-ink-muted)',
             letterSpacing: '0.5em',
             textTransform: 'lowercase',
-            marginBottom: 80,
+            marginBottom: isMobile ? 40 : 80,
           }}
         >
           yours june 5
@@ -235,8 +308,16 @@ export default function HeroSection({ onOpenCase }) {
             whileTap={{ scale: 0.98 }}
             onClick={onOpenCase}
             className="group relative flex h-[54px] w-[240px] items-center justify-center overflow-hidden rounded-full bg-[#111] text-white transition-all duration-500 hover:bg-[var(--color-oxblood)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.2)]"
+            style={{
+              boxShadow: isMobile ? '0 10px 30px rgba(184,48,48,0.2)' : 'none'
+            }}
           >
             <span className="relative z-10 font-hand text-[18px] tracking-[0.1em]">open the cd</span>
+            <motion.div 
+              animate={{ opacity: [0.15, 0.3, 0.15], scale: [1, 1.05, 1] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute inset-0 bg-[var(--color-piper-red)] opacity-20" 
+            />
             <div className="absolute inset-0 translate-y-full bg-gradient-to-tr from-[var(--color-piper-red)] to-[var(--color-oxblood)] transition-transform duration-500 group-hover:translate-y-0" />
           </motion.button>
 

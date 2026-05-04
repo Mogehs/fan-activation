@@ -30,6 +30,7 @@ export default function RightPanel({
   onRedo,
   onClearAll,
   onSave,
+  isMobile = false,
 }) {
   const TITLE_MAP = {
     select: 'cd decorator',
@@ -44,27 +45,32 @@ export default function RightPanel({
       className="flex h-full w-full shrink-0 flex-col gap-0 overflow-y-auto bg-[var(--color-paper)]"
     >
       {/* Panel header */}
-      <div className="shrink-0 border-b border-[var(--color-border-soft)] bg-gradient-to-br from-[var(--color-paper)] to-[var(--color-paper-soft)] px-4 pb-4 pt-5">
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-oxblood)]" />
-          <h3 className="text-[22px] font-normal italic leading-none text-[var(--color-ink)] [font-family:var(--font-display)]">
-            {TITLE_MAP[activeTool]}
-          </h3>
+      {!isMobile && (
+        <div className="shrink-0 border-b border-[var(--color-border-soft)] bg-gradient-to-br from-[var(--color-paper)] to-[var(--color-paper-soft)] px-4 pb-4 pt-5">
+          <div className="flex items-center gap-2">
+            <div className="h-1.5 w-1.5 rounded-full bg-[var(--color-oxblood)]" />
+            <h3 className="text-[22px] font-normal italic leading-none text-[var(--color-ink)] [font-family:var(--font-display)]">
+              {TITLE_MAP[activeTool]}
+            </h3>
+          </div>
+          <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-sepia)] opacity-80 [font-family:var(--font-hand)]">
+            PIPER CONNOLLY ✦ BEAUTIFUL LIFE
+          </p>
         </div>
-        <p className="mt-1.5 text-[11px] font-medium uppercase tracking-[0.1em] text-[var(--color-sepia)] opacity-80 [font-family:var(--font-hand)]">
-          PIPER CONNOLLY ✦ BEAUTIFUL LIFE
-        </p>
-      </div>
+      )}
 
       <div className="flex flex-1 flex-col gap-5 p-4">
-        {/* Color story */}
-        <ColorStoryPicker
-          stories={allStories}
-          activeStory={activeStory}
-          onSelect={onStorySelect}
-        />
-
-        <div className="h-px w-full bg-[var(--color-border-soft)]" />
+        {/* Color story — hidden on mobile to simplify */}
+        {!isMobile && (
+          <>
+            <ColorStoryPicker
+              stories={allStories}
+              activeStory={activeStory}
+              onSelect={onStorySelect}
+            />
+            <div className="h-px w-full bg-[var(--color-border-soft)]" />
+          </>
+        )}
 
         {/* Tool-specific panel */}
         <AnimatePresence mode="wait">
@@ -76,6 +82,7 @@ export default function RightPanel({
               onAddText={canvasApi?.addText}
               onFontChange={onFontChange}
               onColorChange={onColorChange}
+              isMobile={isMobile}
             />
           )}
           {activeTool === 'draw' && (
@@ -87,6 +94,7 @@ export default function RightPanel({
               onSizeChange={onBrushSizeChange}
               onUndoStroke={canvasApi?.undoLastStroke}
               onClearDoodles={canvasApi?.clearDoodles}
+              isMobile={isMobile}
             />
           )}
           {activeTool === 'colors' && (
@@ -131,6 +139,7 @@ export default function RightPanel({
                   onBringToFront={canvasApi?.bringToFront}
                   onSendToBack={canvasApi?.sendToBack}
                   canvasRef={canvasRef}
+                  isMobile={isMobile}
                 />
               ) : (
                 <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[var(--color-border-soft)] px-4 py-10 text-center">
@@ -149,29 +158,30 @@ export default function RightPanel({
           <div className="h-px w-full bg-[var(--color-border-soft)]" />
           
           <div className="grid grid-cols-2 gap-4">
-            {/* Undo/Redo */}
-            <div>
-              <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">HISTORY</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={onUndo}
-                  disabled={!canUndo}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-white px-2 text-[10px] font-medium uppercase tracking-widest text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)] disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  undo
-                </button>
-                <button
-                  onClick={onRedo}
-                  disabled={!canRedo}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-white px-2 text-[10px] font-medium uppercase tracking-widest text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)] disabled:cursor-not-allowed disabled:opacity-30"
-                >
-                  redo
-                </button>
+            {!isMobile && (
+              <div>
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">HISTORY</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={onUndo}
+                    disabled={!canUndo}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-white px-2 text-[10px] font-medium uppercase tracking-widest text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)] disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    undo
+                  </button>
+                  <button
+                    onClick={onRedo}
+                    disabled={!canRedo}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-white px-2 text-[10px] font-medium uppercase tracking-widest text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)] disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    redo
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Clear/Finish */}
-            <div className="flex flex-col justify-end gap-2">
+            <div className={`flex flex-col justify-end gap-2 ${isMobile ? 'col-span-2' : ''}`}>
                <button
                 onClick={onClearAll}
                 className="inline-flex h-9 items-center justify-center rounded-lg border border-[var(--color-sepia)] bg-transparent px-3 text-[10px] font-medium uppercase tracking-widest text-[var(--color-sepia)] transition-all duration-200 hover:bg-[var(--color-oxblood)] hover:text-[var(--color-cream)] [font-family:var(--font-hand)]"

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { FONTS } from '../data/fonts';
 
-export default function TextToolPanel({ activeColor, activeFont, onAddText, onFontChange, onColorChange }) {
+export default function TextToolPanel({ activeColor, activeFont, onAddText, onFontChange, onColorChange, isMobile = false }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 6 }}
@@ -11,7 +11,7 @@ export default function TextToolPanel({ activeColor, activeFont, onAddText, onFo
       exit={{ opacity: 0, y: 6 }}
       className="flex flex-col gap-4"
     >
-      <div className="grid grid-cols-2 gap-4">
+      <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
         {/* Left Column: Actions & Color */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
