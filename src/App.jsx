@@ -5,6 +5,7 @@ import HeroSection from './components/HeroSection';
 import JewelCase from './components/JewelCase';
 import DecoratorLayout from './components/DecoratorLayout';
 import PrivacyPage from './components/PrivacyPage';
+import NotFoundPage from './components/NotFoundPage';
 import Footer from './components/Footer';
 
 const STAGES = {
@@ -143,6 +144,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<MainFlow />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </div>
     </Router>
