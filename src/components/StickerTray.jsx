@@ -5,7 +5,7 @@ import { STICKERS } from '../data/stickers';
 
 function StickerPreview({ sticker, color = '#B83030' }) {
   return (
-    <img src={sticker.src} alt={sticker.name} className="w-[48px] h-[48px] object-contain drop-shadow-md" />
+    <img src={sticker.src} alt={sticker.name} className="w-[32px] h-[32px] object-contain drop-shadow-md" />
   );
 }
 
@@ -23,7 +23,7 @@ export default function StickerTray({ onAddSticker, activeColor, activeSticker }
       </div>
 
       {/* Scrollable sticker grid (1 row on all devices) */}
-      <div className="grid grid-flow-col grid-rows-1 gap-x-2.5 gap-y-2 overflow-x-auto px-3 py-2 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]">
+      <div className="grid grid-flow-col grid-rows-1 gap-x-2 gap-y-1 overflow-x-auto px-2 py-1 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]">
         {STICKERS.map((sticker, i) => (
           <motion.button
             key={sticker.id}
@@ -31,7 +31,7 @@ export default function StickerTray({ onAddSticker, activeColor, activeSticker }
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.03 }}
             whileTap={{ scale: 0.94 }}
-            className={`relative flex h-[72px] w-[72px] min-w-[72px] shrink-0 snap-start flex-col items-center justify-center gap-0.5 rounded-[12px] border px-[6px] py-1.5 text-center text-[10px] font-bold [font-family:var(--font-typewriter)] transition-all duration-200 ${activeSticker === sticker.id
+            className={`relative flex h-[56px] w-[56px] min-w-[56px] shrink-0 snap-start flex-col items-center justify-center gap-0 rounded-[10px] border px-1 py-1 text-center text-[9px] font-bold [font-family:var(--font-typewriter)] transition-all duration-200 ${activeSticker === sticker.id
               ? 'border-[var(--color-oxblood)] bg-gradient-to-br from-[var(--color-piper-red)] to-[var(--color-oxblood)] text-[var(--color-cream)]'
               : 'border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] text-[var(--color-ink)] hover:border-[var(--color-sepia)] hover:bg-[var(--color-bone)] hover:text-[var(--color-ink)]'
               }`}

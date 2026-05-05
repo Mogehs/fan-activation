@@ -42,7 +42,8 @@ export default function TextToolPanel({ activeColor, activeFont, onAddText, onFo
                 value={text}
                 onChange={(e) => setText(e.target.value)}
                 placeholder="type your lyrics..."
-                className="h-16 w-full rounded-xl border border-[var(--color-border-soft)] bg-white/50 px-3 py-2 text-[16px] outline-none focus:border-[var(--color-sepia)] [font-family:var(--font-typewriter)]"
+                style={{ fontFamily: activeFont, color: activeColor }}
+                className="h-16 w-full rounded-xl border border-[var(--color-border-soft)] bg-white/50 px-3 py-2 text-[16px] outline-none focus:border-[var(--color-sepia)]"
               />
             </div>
           )}

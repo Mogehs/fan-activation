@@ -17,16 +17,16 @@ function CDDisc({ size = 180, spin = false }) {
       }}
     >
       {/* Base CD Image from Decorator */}
-      <img 
-        src="/cd.png" 
-        alt="" 
-        style={{ 
-          width: '100%', 
-          height: '100%', 
+      <img
+        src="/cd.png"
+        alt=""
+        style={{
+          width: '100%',
+          height: '100%',
           objectFit: 'cover',
           borderRadius: '50%',
           display: 'block'
-        }} 
+        }}
       />
 
       {/* Holographic Overlay (Matches Decorator) */}
@@ -88,7 +88,7 @@ export default function JewelCase({ onOpen, isOpen }) {
   useEffect(() => {
     if (isOpen && lidRef.current) {
       const tl = gsap.timeline();
-      
+
       // 1. Smooth unlatch & swing (Right to Left)
       tl.to(lidRef.current, {
         rotateY: -115,
@@ -144,9 +144,9 @@ export default function JewelCase({ onOpen, isOpen }) {
       }} />
 
       {/* Jewel Case Container */}
-      <div 
+      <div
         ref={containerRef}
-        style={{ 
+        style={{
           transformStyle: 'preserve-3d',
           position: 'relative',
           zIndex: 1
@@ -160,11 +160,11 @@ export default function JewelCase({ onOpen, isOpen }) {
             cursor: isOpen ? 'default' : 'pointer',
             transformStyle: 'preserve-3d',
           }}
-          whileHover={!isOpen ? { 
-            scale: 1.02, 
-            rotateX: 2, 
+          whileHover={!isOpen ? {
+            scale: 1.02,
+            rotateX: 2,
             rotateY: 2,
-            transition: { duration: 0.4, ease: "easeOut" } 
+            transition: { duration: 0.4, ease: "easeOut" }
           } : {}}
           onClick={!isOpen ? onOpen : undefined}
         >
@@ -199,16 +199,16 @@ export default function JewelCase({ onOpen, isOpen }) {
               overflow: 'hidden'
             }}>
               {/* Spine Detail (Textured Dot-Matrix) */}
-              <div style={{ 
-                position: 'absolute', 
-                left: 0, top: 0, bottom: 0, 
-                width: '10%', 
+              <div style={{
+                position: 'absolute',
+                left: 0, top: 0, bottom: 0,
+                width: '10%',
                 background: 'linear-gradient(90deg, #0a0a0a, #1a1a1a)',
                 backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)',
                 backgroundSize: '4px 4px',
                 borderRight: '1px solid rgba(255,255,255,0.08)'
               }} />
-              
+
               {/* Inner Tray Ledge (More Depth) */}
               <div style={{
                 position: 'absolute',
@@ -249,7 +249,7 @@ export default function JewelCase({ onOpen, isOpen }) {
                 <div style={{ width: 12, height: 12, borderRadius: '50%', background: '#0a0a0a', border: '1px solid rgba(255,255,255,0.1)' }} />
               </div>
 
-              <div style={{ 
+              <div style={{
                 position: 'absolute',
                 top: '50%',
                 left: '55%',
@@ -296,7 +296,7 @@ export default function JewelCase({ onOpen, isOpen }) {
               <div style={{ position: 'absolute', right: -2, top: '40%', width: 4, height: 40, background: 'rgba(255,255,255,0.2)', borderRadius: '4px 0 0 4px' }} />
 
               {/* Glossy Reflection (Moves slightly) */}
-              <motion.div 
+              <motion.div
                 animate={{ x: isOpen ? 100 : 0, opacity: isOpen ? 0 : 1 }}
                 style={{
                   position: 'absolute',
@@ -306,7 +306,7 @@ export default function JewelCase({ onOpen, isOpen }) {
                   height: '200%',
                   background: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.25) 48%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.25) 52%, transparent 60%)',
                   pointerEvents: 'none',
-                }} 
+                }}
               />
 
               {/* Booklet Insert */}
@@ -322,21 +322,21 @@ export default function JewelCase({ onOpen, isOpen }) {
                 transform: 'translateZ(1px)',
                 backgroundImage: 'url("https://www.transparenttextures.com/patterns/paper-fibers.png")'
               }}>
-                 <div style={{ 
-                   width: '100%', 
-                   height: '100%', 
-                   border: '1px solid rgba(156,123,90,0.12)', 
-                   display: 'flex', 
-                   flexDirection: 'column', 
-                   alignItems: 'center', 
-                   justifyContent: 'center',
-                   textAlign: 'center'
-                 }}>
-                   <span style={{ fontFamily: 'var(--font-typewriter)', fontSize: 'clamp(12px, 1.8vw, 13px)', color: 'var(--color-ink-muted)', fontWeight: 700, letterSpacing: '0.4em', marginBottom: '10%', textTransform: 'lowercase' }}>piper connolly</span>
-                   <span style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 6vw, 48px)', fontStyle: 'italic', color: '#111', lineHeight: 0.85 }}>beautiful<br/>life</span>
-                   <div style={{ width: '15%', height: 1, background: 'var(--color-oxblood)', opacity: 0.15, margin: '15% 0' }} />
-                   <span style={{ fontFamily: 'var(--font-typewriter)', fontSize: 'clamp(14px, 1.8vw, 14px)', color: 'var(--color-ink)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'lowercase' }}>tap to open ✦</span>
-                 </div>
+                <div style={{
+                  width: '100%',
+                  height: '100%',
+                  border: '1px solid rgba(156,123,90,0.12)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center'
+                }}>
+                  <span style={{ fontFamily: 'var(--font-typewriter)', fontSize: 'clamp(12px, 1.8vw, 13px)', color: 'var(--color-ink-muted)', fontWeight: 700, letterSpacing: '0.4em', marginBottom: '10%', textTransform: 'lowercase' }}>piper connolly</span>
+                  <span style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 6vw, 48px)', fontStyle: 'italic', color: '#111', lineHeight: 0.85 }}>beautiful<br />life</span>
+                  <div style={{ width: '15%', height: 1, background: 'var(--color-oxblood)', opacity: 0.15, margin: '15% 0' }} />
+                  <span style={{ fontFamily: 'var(--font-typewriter)', fontSize: 'clamp(14px, 1.8vw, 14px)', color: 'var(--color-ink)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'lowercase' }}>tap to open ✦</span>
+                </div>
               </div>
             </div>
           </div>

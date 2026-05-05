@@ -15,37 +15,37 @@ import { sharePng, downloadPng } from '../utils/exportCanvas';
 import { Mail, Sliders, Download, Share2, Plus, X } from 'lucide-react';
 
 export default function DecoratorLayout() {
-  const [activeTool,  setActiveTool]  = useState('draw');
+  const [activeTool, setActiveTool] = useState('draw');
   const [selectedObj, setSelectedObj] = useState(null);
-  const [brushColor,  setBrushColor]  = useState('#B83030');
-  const [brushSize,   setBrushSize]   = useState(4);
-  const [activeFont,  setActiveFont]  = useState(FONTS[0].family);
+  const [brushColor, setBrushColor] = useState('#B83030');
+  const [brushSize, setBrushSize] = useState(4);
+  const [activeFont, setActiveFont] = useState(FONTS[0].family);
   const [activeColor, setActiveColor] = useState('#B83030');
   const [cdBaseColor, setCdBaseColor] = useState('#ffffff');
   const [activeSticker, setActiveSticker] = useState(null);
-  const [undoState,   setUndoState]   = useState({ canUndo: false, canRedo: false });
-  const [undoFns,     setUndoFns]     = useState({ undo: () => {}, redo: () => {} });
-  const [showModal,   setShowModal]   = useState(false);
-  const [unlocked,    setUnlocked]    = useState(false);
-  const [pendingPng,  setPendingPng]  = useState(null);
-  const [pendingSvg,  setPendingSvg]  = useState(null);
-  const [isMobile,    setIsMobile]    = useState(() => window.innerWidth < 768);
+  const [undoState, setUndoState] = useState({ canUndo: false, canRedo: false });
+  const [undoFns, setUndoFns] = useState({ undo: () => { }, redo: () => { } });
+  const [showModal, setShowModal] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+  const [pendingPng, setPendingPng] = useState(null);
+  const [pendingSvg, setPendingSvg] = useState(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   const [canvasApi, setCanvasApi] = useState(null);
   const [showMobileSettings, setShowMobileSettings] = useState(false);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
-  const canvasRef    = useRef(null);
+  const canvasRef = useRef(null);
   const hasLoadedRef = useRef(false);
 
   const { activeStory, setStory, allStories } = useColorStory();
 
   // ---------- PERSISTENCE LOGIC ----------
-  
+
   // Save everything to localStorage
   const saveToLocalStorage = useCallback(() => {
     // CRITICAL: Do not save until we are CERTAIN we have finished the initial load attempt
     if (!canvasApi || !hasLoadedRef.current) return;
-    
+
     try {
       const state = {
         canvasJSON: canvasApi.toJSON(),
@@ -72,7 +72,7 @@ export default function DecoratorLayout() {
       if (state.cdBaseColor) setCdBaseColor(state.cdBaseColor);
       if (state.activeStory) setStory(state.activeStory);
       if (state.activeColor) setActiveColor(state.activeColor);
-      
+
       if (state.canvasJSON && api) {
         // Wait for objects to be fully loaded into Fabric
         await api.loadFromJSON(state.canvasJSON);
@@ -144,6 +144,20 @@ export default function DecoratorLayout() {
     }
   }, [canvasApi, unlocked]);
 
+  // Share flow (gated like save)
+  const handleShareDisc = useCallback(async () => {
+    if (!canvasApi) return;
+    const png = await canvasApi.exportPng?.();
+    const svg = await canvasApi.exportSvg?.();
+    setPendingPng(png);
+    setPendingSvg(svg);
+    if (!unlocked) {
+      setShowModal(true);
+    } else {
+      if (png) sharePng(png);
+    }
+  }, [canvasApi, unlocked]);
+
   const handleModalSuccess = useCallback(() => {
     setShowModal(false);
     setUnlocked(true);
@@ -205,70 +219,73 @@ export default function DecoratorLayout() {
           flex: 1,
           minWidth: 0,
         }}>
-            <CDCanvas
-              activeTool={activeTool}
-              activeColor={activeTool === 'draw' ? brushColor : activeColor}
-              activeFont={activeFont}
-              activeSticker={activeSticker}
-              brushSize={brushSize}
-              cdColor={cdBaseColor}
-              onObjectSelected={(obj) => {
-                setSelectedObj(obj);
-                // Removed: auto-opening settings on mobile. User prefers manual canvas controls.
-              }}
-              onSelectionCleared={() => setSelectedObj(null)}
-              onCanvasReady={handleCanvasReady}
-              onUndoRedoChange={handleUndoRedoChange}
-              isMobile={isMobile}
-            />
+          <CDCanvas
+            activeTool={activeTool}
+            activeColor={activeTool === 'draw' ? brushColor : activeColor}
+            activeFont={activeFont}
+            activeSticker={activeSticker}
+            brushSize={brushSize}
+            cdColor={cdBaseColor}
+            onObjectSelected={(obj) => {
+              setSelectedObj(obj);
+              setActiveTool('select');
+              if (isMobile) {
+                setShowMobileSettings(true);
+              }
+            }}
+            onSelectionCleared={() => setSelectedObj(null)}
+            onCanvasReady={handleCanvasReady}
+            onUndoRedoChange={handleUndoRedoChange}
+            isMobile={isMobile}
+          />
 
-            {/* Mobile Action Buttons */}
-            {isMobile && (
-              <div className="absolute bottom-4 right-4 z-[10] flex flex-col gap-3">
-                <button
-                  onClick={() => setShowActionsMenu(!showActionsMenu)}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-ink)] text-white shadow-xl transition-all ${showActionsMenu ? 'rotate-0' : 'rotate-0'}`}
-                >
-                  {showActionsMenu ? <X size={20} strokeWidth={2.5} /> : <Plus size={24} strokeWidth={2.5} />}
-                </button>
-                <button
-                  onClick={() => setShowMobileSettings(!showMobileSettings)}
-                  className={`flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-oxblood)] text-white shadow-xl transition-all ${showMobileSettings ? 'rotate-90' : 'rotate-0'}`}
-                >
-                  {showMobileSettings ? <X size={20} strokeWidth={2.5} /> : <Sliders size={20} strokeWidth={2.5} />}
-                </button>
-              </div>
-            )}
-
-            {/* Mobile Back Button */}
-            {isMobile && (
+          {/* Mobile Action Buttons */}
+          {isMobile && (
+            <div className="absolute bottom-4 right-4 z-[10] flex flex-col gap-3">
               <button
-                onClick={() => window.location.reload()} // Quick way to return to hero in this simple stage-based app
-                className="absolute top-4 left-4 z-[10] flex h-10 px-3 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-[var(--color-border-soft)] text-[var(--color-ink)] text-[10px] font-medium uppercase tracking-widest [font-family:var(--font-hand)]"
+                onClick={() => setShowActionsMenu(!showActionsMenu)}
+                className={`flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-ink)] text-white shadow-xl transition-all ${showActionsMenu ? 'rotate-0' : 'rotate-0'}`}
               >
-                ← Home
+                {showActionsMenu ? <X size={20} strokeWidth={2.5} /> : <Plus size={24} strokeWidth={2.5} />}
               </button>
-            )}
+              <button
+                onClick={() => setShowMobileSettings(!showMobileSettings)}
+                className={`flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-oxblood)] text-white shadow-xl transition-all ${showMobileSettings ? 'rotate-90' : 'rotate-0'}`}
+              >
+                {showMobileSettings ? <X size={20} strokeWidth={2.5} /> : <Sliders size={20} strokeWidth={2.5} />}
+              </button>
+            </div>
+          )}
 
-            {/* Mobile Floating Undo/Redo — Bottom Left (Symmetrical with Right side buttons) */}
-            {isMobile && (
-              <div className="absolute bottom-4 left-4 z-[10] flex flex-col gap-3">
-                <button
-                  onClick={undoFns.undo}
-                  disabled={!undoState.canUndo}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl border border-[var(--color-border-soft)] disabled:opacity-30 disabled:grayscale transition-all active:scale-90"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
-                </button>
-                <button
-                  onClick={undoFns.redo}
-                  disabled={!undoState.canRedo}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl border border-[var(--color-border-soft)] disabled:opacity-30 disabled:grayscale transition-all active:scale-90"
-                >
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/></svg>
-                </button>
-              </div>
-            )}
+          {/* Mobile Back Button */}
+          {isMobile && (
+            <button
+              onClick={() => window.location.reload()} // Quick way to return to hero in this simple stage-based app
+              className="absolute top-4 left-4 z-[10] flex h-10 px-3 items-center justify-center rounded-full bg-white/80 backdrop-blur-sm border border-[var(--color-border-soft)] text-[var(--color-ink)] text-[10px] font-medium uppercase tracking-widest [font-family:var(--font-hand)]"
+            >
+              ← Home
+            </button>
+          )}
+
+          {/* Mobile Floating Undo/Redo — Bottom Left (Symmetrical with Right side buttons) */}
+          {isMobile && (
+            <div className="absolute bottom-4 left-4 z-[10] flex flex-col gap-3">
+              <button
+                onClick={undoFns.undo}
+                disabled={!undoState.canUndo}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl border border-[var(--color-border-soft)] disabled:opacity-30 disabled:grayscale transition-all active:scale-90"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" /></svg>
+              </button>
+              <button
+                onClick={undoFns.redo}
+                disabled={!undoState.canRedo}
+                className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-xl border border-[var(--color-border-soft)] disabled:opacity-30 disabled:grayscale transition-all active:scale-90"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13" /></svg>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right panel — desktop only */}
@@ -337,17 +354,14 @@ export default function DecoratorLayout() {
                   <Download size={14} /> SAVE PNG
                 </motion.button>
               </div>
-                <motion.button
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={async () => {
-                    const png = await canvasApi?.exportPng?.();
-                    if (png) sharePng(png);
-                  }}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border-soft)] bg-white px-3 text-[10px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-all [font-family:var(--font-hand)]"
-                >
-                  <Share2 size={14} /> SHARE WITH FRIENDS
-                </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+                onClick={handleShareDisc}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border-soft)] bg-white px-3 text-[10px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-all [font-family:var(--font-hand)]"
+              >
+                <Share2 size={14} /> SHARE WITH FRIENDS
+              </motion.button>
             </div>
           </div>
         </div>
@@ -355,7 +369,7 @@ export default function DecoratorLayout() {
 
       {/* Mobile Sticker Tray (Only when tool is stickers) */}
       {isMobile && activeTool === 'stickers' && !showMobileSettings && (
-        <div className="relative z-[10] h-auto shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] pb-2">
+        <div className="relative z-[10] h-auto shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)]">
           <StickerTray
             onAddSticker={handleAddSticker}
             activeColor={activeColor}
@@ -386,46 +400,46 @@ export default function DecoratorLayout() {
               {/* Drag Handle / Close Bar */}
               <div className="relative flex w-full shrink-0 justify-center py-4" onClick={() => setShowMobileSettings(false)}>
                 <div className="h-1.5 w-12 rounded-full bg-[var(--color-border-soft)]" />
-                
+
                 {/* Explicit Close Button for Mobile */}
-                <button 
+                <button
                   onClick={() => setShowMobileSettings(false)}
                   className="absolute right-6 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-paper-soft)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
                 >
                   <X size={18} />
                 </button>
               </div>
-            
-            <div className="flex-1 overflow-y-auto pb-4">
-              <RightPanel
-                activeTool={activeTool}
-                activeStory={activeStory}
-                allStories={allStories}
-                onStorySelect={handleStorySelect}
-                selectedObject={selectedObj}
-                canvasApi={canvasApi}
-                canvasRef={canvasApi?.canvasRef}
-                brushColor={brushColor}
-                brushSize={brushSize}
-                onBrushColorChange={(c) => { setBrushColor(c); canvasApi?.updateBrush(c, brushSize); }}
-                onBrushSizeChange={(s) => { setBrushSize(s); canvasApi?.updateBrush(brushColor, s); }}
-                activeFont={activeFont}
-                activeColor={activeColor}
-                onFontChange={setActiveFont}
-                onColorChange={setActiveColor}
-                cdColor={cdBaseColor}
-                onCdColorChange={setCdBaseColor}
-                canUndo={undoState.canUndo}
-                canRedo={undoState.canRedo}
-                onUndo={undoFns.undo}
-                onRedo={undoFns.redo}
-                onClearAll={() => { canvasApi?.clearAll?.(); }}
-                onSave={handleSaveDisc}
-                onClose={() => setShowMobileSettings(false)}
-                isMobile={true}
-              />
-            </div>
-          </motion.div>
+
+              <div className="flex-1 overflow-y-auto pb-4">
+                <RightPanel
+                  activeTool={activeTool}
+                  activeStory={activeStory}
+                  allStories={allStories}
+                  onStorySelect={handleStorySelect}
+                  selectedObject={selectedObj}
+                  canvasApi={canvasApi}
+                  canvasRef={canvasApi?.canvasRef}
+                  brushColor={brushColor}
+                  brushSize={brushSize}
+                  onBrushColorChange={(c) => { setBrushColor(c); canvasApi?.updateBrush(c, brushSize); }}
+                  onBrushSizeChange={(s) => { setBrushSize(s); canvasApi?.updateBrush(brushColor, s); }}
+                  activeFont={activeFont}
+                  activeColor={activeColor}
+                  onFontChange={setActiveFont}
+                  onColorChange={setActiveColor}
+                  cdColor={cdBaseColor}
+                  onCdColorChange={setCdBaseColor}
+                  canUndo={undoState.canUndo}
+                  canRedo={undoState.canRedo}
+                  onUndo={undoFns.undo}
+                  onRedo={undoFns.redo}
+                  onClearAll={() => { canvasApi?.clearAll?.(); }}
+                  onSave={handleSaveDisc}
+                  onClose={() => setShowMobileSettings(false)}
+                  isMobile={true}
+                />
+              </div>
+            </motion.div>
           </>
         )}
       </AnimatePresence>
@@ -460,11 +474,7 @@ export default function DecoratorLayout() {
                 <Download size={18} /> Save PNG
               </button>
               <button
-                onClick={async () => {
-                  const png = await canvasApi?.exportPng?.();
-                  if (png) sharePng(png);
-                  setShowActionsMenu(false);
-                }}
+                onClick={() => { handleShareDisc(); setShowActionsMenu(false); }}
                 className="flex h-12 items-center gap-3 rounded-full bg-white px-5 text-[12px] font-medium uppercase tracking-widest text-[var(--color-ink)] shadow-xl [font-family:var(--font-hand)]"
               >
                 ✦ Share

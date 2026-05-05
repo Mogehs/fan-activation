@@ -97,11 +97,23 @@ export async function sharePng(dataUrl) {
     try {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], 'my-beautiful-life-cd.png', { type: 'image/png' });
+      const shareText = `i made my own beautiful life cd 💿\ndecorate your beautiful life here: ${window.location.href}`;
+      
+      // Attempt to copy the text to clipboard automatically, as apps like Instagram 
+      // often strip the 'text' field when sharing a file via the OS share sheet.
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(shareText);
+        }
+      } catch (err) {
+        console.warn("Clipboard copy failed before share", err);
+      }
+
       if (navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: 'beautiful life — piper connolly',
-          text: `i made my own beautiful life cd 💿\ndecorate your beautiful life here: ${window.location.href}`,
+          text: shareText,
         });
         return 'shared';
       }
