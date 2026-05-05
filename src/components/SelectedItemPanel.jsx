@@ -29,6 +29,12 @@ export default function SelectedItemPanel({
 
   const isText = selectedObject?.type === 'i-text' || selectedObject?.type === 'text';
 
+  const getTypeLabel = () => {
+    if (isText) return 'text';
+    if (selectedObject?.type === 'path') return 'drawing';
+    return 'sticker';
+  };
+
   // Sync controls with selected object
   useEffect(() => {
     if (!selectedObject) return;
@@ -112,7 +118,7 @@ export default function SelectedItemPanel({
         {/* Header */}
         <div className="flex items-center justify-between px-1">
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontStyle: 'italic', color: 'var(--color-sepia)' }}>
-            editing {isText ? 'text' : 'sticker'}
+            editing {getTypeLabel()}
           </p>
           <button onClick={onRemove} className="text-[12px] font-bold uppercase tracking-wider text-[var(--color-piper-red)] [font-family:var(--font-typewriter)]">
             remove
@@ -129,14 +135,14 @@ export default function SelectedItemPanel({
                 <ControlLabel>size</ControlLabel>
                 <span className="text-[10px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{Math.round(scale * 100)}%</span>
               </div>
-              <input type="range" min="0.2" max="3" step="0.05" value={scale} onChange={e => applyScale(e.target.value)} className="w-full" />
+              <input type="range" min="0.2" max="3" step="0.05" value={scale} onChange={e => applyScale(e.target.value)} className="w-full touch-none" />
             </div>
             <div>
               <div className="flex items-center justify-between">
                 <ControlLabel>rotate</ControlLabel>
                 <span className="text-[10px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{rotation}°</span>
               </div>
-              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={e => applyRotation(e.target.value)} className="w-full" />
+              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={e => applyRotation(e.target.value)} className="w-full touch-none" />
             </div>
           </div>
 
@@ -218,7 +224,7 @@ export default function SelectedItemPanel({
       >
         <div className="flex items-center justify-between">
           <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontStyle: 'italic', color: 'var(--color-sepia)' }}>
-            editing {isText ? 'text' : 'sticker'}
+            editing {getTypeLabel()}
           </p>
           <button onClick={onRemove} className="text-[12px] font-bold uppercase tracking-wider text-[var(--color-piper-red)] [font-family:var(--font-typewriter)] hover:underline">
             remove
@@ -233,7 +239,7 @@ export default function SelectedItemPanel({
                 <ControlLabel>size</ControlLabel>
                 <span className="text-[11px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{Math.round(scale * 100)}%</span>
               </div>
-              <input type="range" min="0.2" max="4" step="0.05" value={scale} onChange={e => applyScale(e.target.value)} className="w-full" />
+              <input type="range" min="0.2" max="4" step="0.05" value={scale} onChange={e => applyScale(e.target.value)} className="w-full touch-none" />
             </div>
 
             {/* Rotation */}
@@ -242,7 +248,7 @@ export default function SelectedItemPanel({
                 <ControlLabel>rotate</ControlLabel>
                 <span className="text-[11px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{rotation}°</span>
               </div>
-              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={e => applyRotation(e.target.value)} className="w-full" />
+              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={e => applyRotation(e.target.value)} className="w-full touch-none" />
             </div>
 
             {/* Color */}
