@@ -185,13 +185,14 @@ export default function DecoratorLayout() {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100%',
+        height: isMobile ? '100dvh' : '100%',
         background: 'var(--color-background)',
         overflow: 'hidden',
+        position: 'relative',
       }}
     >
       {/* Main 3-panel area */}
-      <div className={`flex min-h-0 ${isMobile ? 'flex-col flex-1' : 'flex-[3] p-2'} gap-2 overflow-hidden`}>
+      <div className={`flex min-h-0 ${isMobile ? 'flex-col flex-1 pb-[140px]' : 'flex-[3] p-2'} gap-2 overflow-hidden`}>
         {/* Left tool rail */}
         {!isMobile && (
           <div className="h-full self-stretch shrink-0 overflow-hidden border border-[var(--color-border-soft)] bg-[var(--color-paper)] rounded-2xl shadow-sm">
@@ -352,14 +353,21 @@ export default function DecoratorLayout() {
         </div>
       )}
 
-      {/* Mobile Sticker Tray (Only when tool is stickers) */}
-      {isMobile && activeTool === 'stickers' && !showMobileSettings && (
-        <div className="relative z-[10] h-auto shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] pb-2">
-          <StickerTray
-            onAddSticker={handleAddSticker}
-            activeColor={activeColor}
-            activeSticker={activeSticker}
-          />
+      {/* Mobile Bottom Control Rail (Stickers + Tools) */}
+      {isMobile && (
+        <div className="fixed bottom-0 left-0 right-0 z-[100] flex flex-col border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] shadow-[0_-4px_20px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom,0px)]">
+          {activeTool === 'stickers' && !showMobileSettings && (
+            <div className="shrink-0 border-b border-[var(--color-border-soft)]">
+              <StickerTray
+                onAddSticker={handleAddSticker}
+                activeColor={activeColor}
+                activeSticker={activeSticker}
+              />
+            </div>
+          )}
+          <div className="shrink-0">
+            <ToolRail activeTool={activeTool} onToolChange={handleToolChange} mobile={true} />
+          </div>
         </div>
       )}
 
@@ -473,12 +481,7 @@ export default function DecoratorLayout() {
         )}
       </AnimatePresence>
 
-      {/* Mobile tool rail (bottom) */}
-      {isMobile && (
-        <div className="relative z-[20] shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)]">
-          <ToolRail activeTool={activeTool} onToolChange={handleToolChange} mobile={true} />
-        </div>
-      )}
+      {/* Removed: redundant mobile tool rail from the flow */}
 
       {/* Email gate modal */}
       <EmailGateModal

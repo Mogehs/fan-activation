@@ -92,6 +92,7 @@ export default function JewelCase({ onOpen, isOpen }) {
       // 1. Smooth unlatch & swing (Right to Left)
       tl.to(lidRef.current, {
         rotateY: -115,
+        z: 10,
         duration: 1.5,
         ease: "power2.inOut"
       });
@@ -272,6 +273,7 @@ export default function JewelCase({ onOpen, isOpen }) {
               bottom: 0,
               transformOrigin: 'left center',
               transformStyle: 'preserve-3d',
+              transform: 'translateZ(10px)',
               zIndex: 10,
             }}
           >
