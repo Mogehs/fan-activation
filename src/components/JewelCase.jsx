@@ -92,7 +92,6 @@ export default function JewelCase({ onOpen, isOpen }) {
       // 1. Smooth unlatch & swing (Right to Left)
       tl.to(lidRef.current, {
         rotateY: -115,
-        z: 10,
         duration: 1.5,
         ease: "power2.inOut"
       });
@@ -254,7 +253,7 @@ export default function JewelCase({ onOpen, isOpen }) {
                 position: 'absolute',
                 top: '50%',
                 left: '55%',
-                transform: 'translate(-50%, -50%) translateZ(8px)',
+                transform: 'translate(-50%, -50%) translateZ(2px)',
                 zIndex: 2
               }}>
                 <CDDisc size={Math.min(isMobile ? 300 : 360, windowWidth * 0.7)} spin={isOpen} />
@@ -273,7 +272,6 @@ export default function JewelCase({ onOpen, isOpen }) {
               bottom: 0,
               transformOrigin: 'left center',
               transformStyle: 'preserve-3d',
-              transform: 'translateZ(10px)',
               zIndex: 10,
             }}
           >

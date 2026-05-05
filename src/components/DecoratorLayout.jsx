@@ -381,7 +381,7 @@ export default function DecoratorLayout() {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 z-[50] flex h-fit max-h-[40vh] flex-col rounded-t-[32px] border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] shadow-[0_-12px_40px_rgba(0,0,0,0.1)]"
+              className="fixed inset-x-0 bottom-0 z-[50] flex h-fit max-h-[80vh] flex-col rounded-t-[32px] border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] shadow-[0_-12px_40px_rgba(0,0,0,0.1)]"
             >
               {/* Drag Handle / Close Bar */}
               <div className="relative flex w-full shrink-0 justify-center py-4" onClick={() => setShowMobileSettings(false)}>
