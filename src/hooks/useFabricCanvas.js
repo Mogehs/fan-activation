@@ -16,6 +16,7 @@ export function useFabricCanvas({
   onCanvasClick,
   activeTool,
   activeColor,
+  activeFont,
   brushSize,
   cdColor,
 }) {
@@ -49,15 +50,27 @@ export function useFabricCanvas({
     canvasRef.current = canvas;
 
     // Circular clip path = CD boundary
-    const radius = size / 2 - 2;
+    const radius = size / 2;
     const clipCircle = new fabric.Circle({
       radius,
-      left: size / 2 - radius,
-      top:  size / 2 - radius,
+      left: radius,
+      top:  radius,
+      originX: 'center',
+      originY: 'center',
       absolutePositioned: true,
+      name: 'cd-clip-mask'
     });
     clipCircleRef.current = clipCircle;
     canvas.clipPath = clipCircle;
+
+    // Force the Fabric wrapper to be absolute and fill the container
+    if (canvas.wrapperEl) {
+      canvas.wrapperEl.style.position = 'absolute';
+      canvas.wrapperEl.style.inset = '0';
+      canvas.wrapperEl.style.width = '100%';
+      canvas.wrapperEl.style.height = '100%';
+      canvas.wrapperEl.style.zIndex = '2';
+    }
 
     // Internal background layers have been moved to the DOM (CDCanvas.jsx)
     // We only need the clipPath for drawing bounds.
@@ -127,11 +140,12 @@ export function useFabricCanvas({
   // ---------- COLOR SYNC ----------
   // Color sync is now handled by the DOM component (CDBase)
 
-  // ---------- TOOL SWITCHING ----------
+  // ---------- TOOL & SELECTION SYNC ----------
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // 1. Drawing mode setup
     if (activeTool === 'draw') {
       canvas.isDrawingMode = true;
       if (!canvas.freeDrawingBrush) {
@@ -142,7 +156,47 @@ export function useFabricCanvas({
     } else {
       canvas.isDrawingMode = false;
     }
-  }, [activeTool, activeColor, brushSize]);
+
+    // 2. Dynamic Selection Updates
+    // If an object is selected and we change colors/fonts in the tool panel, apply them instantly.
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && !activeObject.name?.startsWith('cd-')) {
+      let modified = false;
+
+      // Update color if applicable
+      // We allow updates in 'select' tool and any creation tool
+      if (['select', 'text', 'stickers', 'colors'].includes(activeTool)) {
+        const isText = activeObject.type === 'i-text' || activeObject.type === 'text';
+        if (isText) {
+          if (activeObject.fill !== activeColor) {
+            activeObject.set({ fill: activeColor });
+            modified = true;
+          }
+        } else {
+          // Update sticker colors (recursively if it's a group/SVG)
+          const objs = activeObject._objects || [activeObject];
+          objs.forEach(o => {
+            if (o.fill && o.fill !== 'none' && o.fill !== activeColor) { o.set({ fill: activeColor }); modified = true; }
+            if (o.stroke && o.stroke !== 'none' && o.stroke !== activeColor) { o.set({ stroke: activeColor }); modified = true; }
+          });
+        }
+      }
+
+      // Update font if text is selected
+      if (activeTool === 'text' && (activeObject.type === 'i-text' || activeObject.type === 'text')) {
+        const cleanFont = activeFont.split(',')[0].replace(/['"]/g, '').trim();
+        if (activeObject.fontFamily !== cleanFont) {
+          activeObject.set({ fontFamily: cleanFont });
+          modified = true;
+        }
+      }
+
+      if (modified) {
+        canvas.renderAll();
+        canvas.fire('object:modified');
+      }
+    }
+  }, [activeTool, activeColor, activeFont, brushSize, canvasRef.current]);
 
   // ---------- HELPERS ----------
   const addObject = useCallback((obj) => {
@@ -306,19 +360,28 @@ export function useFabricCanvas({
 
 function getContainerSize(container) {
   if (!container) return 400;
-  const s = Math.min(container.clientWidth, container.clientHeight, 560);
+  const rect = container.getBoundingClientRect();
+  // Use a slightly larger integer resolution to ensure it covers the container fully
+  const s = Math.ceil(Math.min(rect.width, rect.height || rect.width, 560));
   return Math.max(s, 200);
 }
 
 function resizeCanvas(canvas, clipCircle, newSize) {
   if (!canvas) return;
-  canvas.setWidth(newSize);
-  canvas.setHeight(newSize);
-
-  const radius = newSize / 2 - 2;
+  
+  // Update internal resolution
+  canvas.setDimensions({
+    width: newSize,
+    height: newSize
+  }, { backstoreOnly: false }); // Ensure both css and backstore are updated (though CSS is overridden by our !important)
 
   if (clipCircle) {
-    clipCircle.set({ radius, left: newSize / 2 - radius, top: newSize / 2 - radius });
+    const radius = newSize / 2;
+    clipCircle.set({
+      radius: radius,
+      left: radius,
+      top: radius
+    });
     canvas.clipPath = clipCircle;
   }
 

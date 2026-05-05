@@ -216,11 +216,12 @@ export default function HeroSection({ onOpenCase }) {
         {/* Artist name */}
         <motion.p
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 0.6, y: 0 }}
+          animate={{ opacity: 0.8, y: 0 }}
           transition={{ delay: 0.2, duration: 1.2 }}
           style={{
-            fontFamily: 'var(--font-hand)',
-            fontSize: 'clamp(14px, 2vw, 18px)',
+            fontFamily: 'var(--font-typewriter)',
+            fontSize: 'clamp(14px, 3vw, 20px)',
+            fontWeight: 700,
             color: 'var(--color-sepia)',
             letterSpacing: '0.4em',
             textTransform: 'lowercase',
@@ -284,11 +285,12 @@ export default function HeroSection({ onOpenCase }) {
         {/* Date line */}
         <motion.p
           initial={{ opacity: 0 }}
-          animate={{ opacity: 0.5 }}
+          animate={{ opacity: 0.8 }}
           transition={{ delay: 0.9, duration: 1 }}
           style={{
             fontFamily: 'var(--font-typewriter)',
-            fontSize: 'clamp(10px, 1.2vw, 12px)',
+            fontSize: 'clamp(14px, 1.8vw, 16px)',
+            fontWeight: 700,
             color: 'var(--color-ink-muted)',
             letterSpacing: '0.5em',
             textTransform: 'lowercase',
@@ -312,7 +314,7 @@ export default function HeroSection({ onOpenCase }) {
               boxShadow: isMobile ? '0 10px 30px rgba(184,48,48,0.2)' : 'none'
             }}
           >
-            <span className="relative z-10 font-hand text-[18px] tracking-[0.1em]">open the cd</span>
+            <span className="relative z-10 font-typewriter text-[16px] font-bold tracking-[0.1em]">open the cd</span>
             <motion.div 
               animate={{ opacity: [0.15, 0.3, 0.15], scale: [1, 1.05, 1] }}
               transition={{ duration: 3, repeat: Infinity }}
@@ -324,12 +326,13 @@ export default function HeroSection({ onOpenCase }) {
           {/* Integrated Hint: "decorate yours" */}
           <motion.p
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.4 }}
+            animate={{ opacity: 0.7 }}
             transition={{ delay: 1.6, duration: 1.2 }}
             style={{
               marginTop: 20,
-              fontFamily: 'var(--font-hand)',
-              fontSize: '13px',
+              fontFamily: 'var(--font-typewriter)',
+              fontSize: '14px',
+              fontWeight: 700,
               color: 'var(--color-sepia)',
               letterSpacing: '0.25em',
               textTransform: 'lowercase',

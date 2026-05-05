@@ -1,8 +1,8 @@
 // submitContact.js — Configurable contact form submission
 // Defaults to a fetch POST. Swap endpoint in .env for your platform.
 
-const ENDPOINT = import.meta.env.VITE_SUBMIT_ENDPOINT || 'https://laylo.com/api/graphql';
-const LAYLO_API_KEY = import.meta.env.VITE_LAYLO_API_KEY || null;
+const ENDPOINT = import.meta.env.VITE_SUBMIT_ENDPOINT
+const LAYLO_API_KEY = import.meta.env.VITE_LAYLO_API_KEY
 
 /**
  * Submit contact details to Laylo via GraphQL API.
@@ -39,7 +39,7 @@ export async function submitContact({ email, phone }) {
   try {
     const res = await fetch(ENDPOINT, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${LAYLO_API_KEY}`
       },
@@ -57,32 +57,32 @@ export async function submitContact({ email, phone }) {
 
     // Handle GraphQL errors
     const rawError = body?.errors?.[0]?.message || '';
-    
+
     // User-friendly translations for common errors
     if (rawError.includes('Country not supported')) {
-      return { 
-        success: false, 
-        message: 'sorry, this activation isn’t available in your region just yet ✦' 
+      return {
+        success: false,
+        message: 'sorry, this activation isn’t available in your region just yet ✦'
       };
     }
-    
+
     if (rawError.includes('already subscribed') || rawError.includes('already exists')) {
-      return { 
+      return {
         success: true, // Treat as success since they are already in the club
-        message: 'you’re already in the club! proceed to download ✦' 
+        message: 'you’re already in the club! proceed to download ✦'
       };
     }
 
     if (rawError.includes('invalid') || rawError.includes('required')) {
-      return { 
-        success: false, 
-        message: 'please check your info and try again ✦' 
+      return {
+        success: false,
+        message: 'please check your info and try again ✦'
       };
     }
 
-    return { 
-      success: false, 
-      message: rawError || 'something went wrong. please try again ✦' 
+    return {
+      success: false,
+      message: rawError || 'something went wrong. please try again ✦'
     };
   } catch (error) {
     console.error('Submission error:', error);

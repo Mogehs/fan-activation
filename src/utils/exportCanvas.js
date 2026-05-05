@@ -89,10 +89,10 @@ export function downloadPng(dataUrl, filename = 'my-beautiful-life-cd.png') {
 }
 
 /**
- * Try native share (mobile), fallback to download.
+ * Explicitly share the image file (triggering native share dialog on mobile).
  * @param {string} dataUrl
  */
-export async function shareOrDownload(dataUrl) {
+export async function sharePng(dataUrl) {
   if (navigator.share && navigator.canShare) {
     try {
       const blob = await (await fetch(dataUrl)).blob();
@@ -101,14 +101,21 @@ export async function shareOrDownload(dataUrl) {
         await navigator.share({
           files: [file],
           title: 'beautiful life — piper connolly',
-          text: 'check mine out 🎶 @hernameispiperconnolly',
+          text: `i made my own beautiful life cd 💿\ndecorate your beautiful life here: ${window.location.href}`,
         });
         return 'shared';
       }
-    } catch {
-      // fall through to download
+    } catch (e) {
+      console.warn("Share failed, falling back to download", e);
     }
   }
   downloadPng(dataUrl);
   return 'downloaded';
+}
+
+/**
+ * Legacy wrapper for compatibility, now just calls sharePng.
+ */
+export async function shareOrDownload(dataUrl) {
+  return sharePng(dataUrl);
 }

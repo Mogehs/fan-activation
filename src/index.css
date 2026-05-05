@@ -67,7 +67,7 @@ html {
 }
 
 body {
-  font-family: var(--font-body);
+  font-family: var(--font-typewriter);
   background-color: var(--color-background);
   color: var(--color-ink);
   min-height: 100dvh;
@@ -146,27 +146,45 @@ input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 4px;
+  height: 6px;
   background: var(--color-bone);
   border-radius: 99px;
   outline: none;
   cursor: pointer;
+  margin: 8px 0;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   background: var(--color-oxblood);
+  border: 2px solid white;
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(107, 26, 26, 0.30);
-  transition: transform 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
+  transform: scale(1.15);
+  box-shadow: 0 4px 10px rgba(107, 26, 26, 0.40);
+}
+
+@media (max-width: 768px) {
+  input[type="range"] {
+    height: 10px;
+    margin: 12px 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    width: 30px;
+    height: 30px;
+    box-shadow: 0 4px 12px rgba(107, 26, 26, 0.35);
+  }
+  input[type="range"]::-webkit-slider-thumb:active {
+    transform: scale(1.1);
+  }
 }
 
 /* ============================================================
@@ -194,4 +212,22 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border-radius: 50%;
   animation: holographic-spin 8s linear infinite;
   background-size: 200% 200%;
+}
+
+/* Fabric.js Canvas Container Alignment Fixes */
+.canvas-container, 
+.canvas-container canvas {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 2;
+  border-radius: 50%;
+  overflow: hidden;
+  touch-action: none;
+}
+
+canvas {
+  user-select: none;
+  touch-action: none;
 }

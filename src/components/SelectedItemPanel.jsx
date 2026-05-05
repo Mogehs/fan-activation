@@ -72,12 +72,10 @@ export default function SelectedItemPanel({
     setColor(val);
     if (isText) {
       selectedObject.set({ fill: val });
-      // If we're in editing mode, also apply to selection
       if (selectedObject.isEditing) {
         selectedObject.setSelectionStyles({ fill: val });
       }
     } else {
-      // Traverse group children
       const objs = selectedObject._objects || [selectedObject];
       objs.forEach(o => {
         if (o.fill && o.fill !== 'none') o.set({ fill: val });
@@ -92,196 +90,228 @@ export default function SelectedItemPanel({
     if (!selectedObject || !canvasRef?.current || !isText) return;
     const fontName = family.split(',')[0].replace(/['"]/g, '').trim();
     setFontFamily(family);
-    
-    // Apply to the whole object
     selectedObject.set({ fontFamily: fontName });
-    
-    // If we're in editing mode, also apply to the current selection/whole text
     if (selectedObject.isEditing) {
       selectedObject.setSelectionStyles({ fontFamily: fontName });
     }
-    
     canvasRef.current.renderAll();
     canvasRef.current.fire('object:modified');
   };
 
-  return (
-    <AnimatePresence>
-      {selectedObject && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 8 }}
-          transition={{ duration: 0.2 }}
-          className={`flex flex-col gap-2.5 rounded-[10px] border border-[var(--color-border-soft)] bg-[var(--color-paper)] ${isMobile ? 'p-2' : 'p-3'}`}
-        >
-          <p style={{ fontFamily: 'var(--font-display)', fontSize: 13, fontStyle: 'italic', color: 'var(--color-sepia)', marginBottom: 4 }}>
-            {isText ? 'text selected' : 'sticker selected'}
+  const ControlLabel = ({ children }) => (
+    <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">
+      {children}
+    </p>
+  );
+
+  if (!selectedObject) return null;
+
+  if (isMobile) {
+    return (
+      <div className="flex flex-col gap-3 p-3">
+        {/* Header */}
+        <div className="flex items-center justify-between px-1">
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 16, fontStyle: 'italic', color: 'var(--color-sepia)' }}>
+            editing {isText ? 'text' : 'sticker'}
           </p>
+          <button onClick={onRemove} className="text-[12px] font-bold uppercase tracking-wider text-[var(--color-piper-red)] [font-family:var(--font-typewriter)]">
+            remove
+          </button>
+        </div>
 
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
-            {/* Left Column: Transformation & Color */}
-            <div className="flex flex-col gap-4">
-              {/* Size */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">size</p>
-                  <span className="text-[10px] text-[var(--color-ink-muted)] [font-family:var(--font-hand)]">
-                    {Math.round(scale * 100)}%
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="0.2"
-                  max="4"
-                  step="0.05"
-                  value={scale}
-                  onChange={e => applyScale(e.target.value)}
-                  className="w-full"
-                />
+        {/* 2-Row Horizontal Scroll Container */}
+        <div className="grid grid-flow-col grid-rows-2 gap-x-4 gap-y-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          
+          {/* Card 1: Transformation (Size & Rotate) */}
+          <div className="row-span-2 flex w-[210px] flex-col justify-between rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3 shadow-sm">
+            <div>
+              <div className="flex items-center justify-between">
+                <ControlLabel>size</ControlLabel>
+                <span className="text-[10px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{Math.round(scale * 100)}%</span>
               </div>
-
-              {/* Rotation */}
-              <div>
-                <div className="flex items-center justify-between">
-                  <p className="mb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">rotate</p>
-                  <span className="text-[10px] text-[var(--color-ink-muted)] [font-family:var(--font-hand)]">
-                    {rotation}°
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="-180"
-                  max="180"
-                  step="1"
-                  value={rotation}
-                  onChange={e => applyRotation(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Color Selection */}
-              <div>
-                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">object color</p>
-                <div className="mb-2 flex flex-wrap gap-1.5">
-                  {PIPER_COLORS.map(c => (
-                    <button
-                      key={c}
-                      className={`h-5 w-5 shrink-0 rounded-full border transition-all duration-200 ${
-                        color === c
-                          ? 'scale-110 border-[var(--color-oxblood)] ring-2 ring-[var(--color-paper)] ring-offset-1 ring-offset-[var(--color-oxblood)]'
-                          : 'border-transparent hover:scale-105'
-                      }`}
-                      style={{ background: c, border: c === '#FAF6F0' ? '1px solid var(--color-border-soft)' : undefined }}
-                      onClick={() => applyColor(c)}
-                      title={c}
-                    />
-                  ))}
-                </div>
-                <input
-                  type="color"
-                  value={color.startsWith('#') ? color : '#B83030'}
-                  onChange={e => applyColor(e.target.value)}
-                  className="h-8 w-full cursor-pointer rounded-lg border border-[var(--color-border-soft)] p-0.5"
-                />
-              </div>
+              <input type="range" min="0.2" max="3" step="0.05" value={scale} onChange={e => applyScale(e.target.value)} className="w-full" />
             </div>
-
-            {/* Right Column: Fonts & Layers & Text Content */}
-            <div className="flex flex-col gap-4">
-              {/* Text content editor (mobile only) */}
-              {isMobile && isText && (
-                <div>
-                  <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">edit text</p>
-                  <textarea
-                    value={textContent}
-                    onChange={(e) => applyText(e.target.value)}
-                    className="h-20 w-full rounded-xl border border-[var(--color-border-soft)] bg-white/50 px-3 py-2 text-[14px] outline-none focus:border-[var(--color-sepia)]"
-                  />
-                </div>
-              )}
-
-              {/* Font picker (text only) */}
-              {isText ? (
-                <div>
-                  <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">font family</p>
-                  <div className="flex h-[140px] flex-col gap-0.5 overflow-y-auto rounded-lg border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-1.5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-                    {FONTS.map(f => {
-                      const cleanName = f.family.split(',')[0].replace(/['"]/g, '').trim();
-                      const isActive = fontFamily === cleanName || selectedObject.fontFamily === cleanName;
-                      return (
-                        <button
-                          key={f.id}
-                          className={`rounded-lg border px-2 py-1 text-left text-[13px] transition-all duration-150 ${
-                            isActive
-                              ? 'border-[var(--color-sepia)] bg-[var(--color-cream)] shadow-sm'
-                              : 'border-transparent bg-transparent hover:border-[var(--color-border-soft)] hover:bg-[var(--color-bone)]'
-                          }`}
-                          style={{ fontFamily: f.family }}
-                          onClick={() => applyFont(f.family)}
-                        >
-                          {f.displayLabel}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ) : (
-                <div className="flex h-full items-center justify-center rounded-2xl border-2 border-dashed border-[var(--color-border-soft)] p-4 text-center">
-                  <p className="text-[10px] font-medium uppercase tracking-widest text-[var(--color-ink-muted)] opacity-50 [font-family:var(--font-hand)]">
-                    sticker<br/>selected
-                  </p>
-                </div>
-              )}
+            <div>
+              <div className="flex items-center justify-between">
+                <ControlLabel>rotate</ControlLabel>
+                <span className="text-[10px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{rotation}°</span>
+              </div>
+              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={e => applyRotation(e.target.value)} className="w-full" />
             </div>
           </div>
 
-          <div className="h-px w-full bg-[var(--color-border-soft)]" />
-
-          {/* Bottom Area: Layers & Actions */}
-          <div className={`grid ${isMobile ? 'grid-cols-1' : 'grid-cols-2'} gap-4`}>
-            {/* Layer controls */}
-            <div>
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">layering</p>
-              <div className="grid grid-cols-2 gap-1.5">
-                {[
-                  { label: '↑ fwd', action: onBringForward },
-                  { label: '↓ bwd', action: onSendBackward },
-                  { label: '⇑ front', action: onBringToFront },
-                  { label: '⇓ back', action: onSendToBack },
-                ].map(({ label, action }) => (
+          {/* Card 2: Color (Text only) or Actions (Sticker) */}
+          {isText ? (
+            <div className="row-span-2 flex w-[240px] flex-col gap-2 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3 shadow-sm">
+              <ControlLabel>text color</ControlLabel>
+              <div className="flex flex-wrap gap-2 overflow-y-auto pr-1" style={{ maxHeight: '80px' }}>
+                {PIPER_COLORS.map(c => (
                   <button
-                    key={label}
-                    onClick={action}
-                    className="inline-flex items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-[rgba(250,246,240,0.8)] px-1 py-1.5 text-[9px] font-medium uppercase tracking-wider text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)]"
-                  >
-                    {label}
-                  </button>
+                    key={c}
+                    className={`h-7 w-7 shrink-0 rounded-full border transition-all ${color === c ? 'scale-110 border-[var(--color-oxblood)] ring-2 ring-[var(--color-paper)]' : 'border-transparent'}`}
+                    style={{ background: c }}
+                    onClick={() => applyColor(c)}
+                  />
                 ))}
               </div>
             </div>
+          ) : (
+            <div className="row-span-2 flex w-[160px] flex-col gap-2 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3 shadow-sm">
+              <ControlLabel>actions</ControlLabel>
+              <button onClick={onDuplicate} className="flex h-11 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-white text-[11px] font-bold uppercase tracking-wider text-[var(--color-ink)] [font-family:var(--font-typewriter)]">duplicate</button>
+              <button onClick={onRemove} className="flex h-11 items-center justify-center rounded-lg border border-[var(--color-piper-red)] text-[11px] font-bold uppercase tracking-wider text-[var(--color-piper-red)] [font-family:var(--font-typewriter)]">delete</button>
+            </div>
+          )}
 
-            {/* Actions */}
-            <div className="flex flex-col justify-end gap-1.5">
-              <p className="mb-0.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">actions</p>
-              <div className="grid grid-cols-1 gap-1.5">
-                <button
-                  onClick={onDuplicate}
-                  className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-[rgba(250,246,240,0.8)] px-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)]"
-                >
-                  duplicate
+          {/* Card 3: Layering */}
+          <div className="row-span-2 flex w-[190px] flex-col gap-2 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3 shadow-sm">
+            <ControlLabel>layering</ControlLabel>
+            <div className="grid grid-cols-2 gap-1.5 h-full">
+              {[
+                { label: 'fwd', action: onBringForward },
+                { label: 'bwd', action: onSendBackward },
+                { label: 'front', action: onBringToFront },
+                { label: 'back', action: onSendToBack },
+              ].map(({ label, action }) => (
+                <button key={label} onClick={action} className="flex items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-white text-[10px] font-bold uppercase tracking-wider text-[var(--color-ink)] [font-family:var(--font-typewriter)]">
+                  {label}
                 </button>
-                <button
-                  onClick={onRemove}
-                  className="inline-flex h-8 items-center justify-center rounded-lg border border-[var(--color-piper-red)] bg-transparent px-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-piper-red)] transition-all duration-200 hover:bg-[var(--color-oxblood)] hover:text-[var(--color-cream)] [font-family:var(--font-hand)]"
-                >
-                  delete item
-                </button>
-              </div>
+              ))}
             </div>
           </div>
-        </motion.div>
-      )}
+
+          {/* Card 4: Font (Text only) */}
+          {isText && (
+            <div className="row-span-2 flex w-[240px] flex-col gap-2 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3 shadow-sm">
+              <ControlLabel>font</ControlLabel>
+              <div className="flex flex-col gap-1 overflow-y-auto pr-1" style={{ maxHeight: '100px' }}>
+                {FONTS.map(f => {
+                  const cleanName = f.family.split(',')[0].replace(/['"]/g, '').trim();
+                  const isActive = fontFamily === cleanName || selectedObject.fontFamily === cleanName;
+                  return (
+                    <button
+                      key={f.id}
+                      className={`rounded-lg border px-2.5 py-2 text-left text-[13px] transition-all ${isActive ? 'border-[var(--color-sepia)] bg-[var(--color-cream)]' : 'border-transparent bg-white/50'}`}
+                      style={{ fontFamily: f.family }}
+                      onClick={() => applyFont(f.family)}
+                    >
+                      {f.displayLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop / Default Layout
+  return (
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        className="flex flex-col gap-4 rounded-2xl border border-[var(--color-border-soft)] bg-[var(--color-paper)] p-4 shadow-sm"
+      >
+        <div className="flex items-center justify-between">
+          <p style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontStyle: 'italic', color: 'var(--color-sepia)' }}>
+            editing {isText ? 'text' : 'sticker'}
+          </p>
+          <button onClick={onRemove} className="text-[12px] font-bold uppercase tracking-wider text-[var(--color-piper-red)] [font-family:var(--font-typewriter)] hover:underline">
+            remove
+          </button>
+        </div>
+
+        <div className={`grid ${!isText ? 'grid-cols-1' : 'grid-cols-2'} gap-6`}>
+          <div className="flex flex-col gap-6">
+            {/* Size */}
+            <div>
+              <div className="flex items-center justify-between">
+                <ControlLabel>size</ControlLabel>
+                <span className="text-[11px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{Math.round(scale * 100)}%</span>
+              </div>
+              <input type="range" min="0.2" max="4" step="0.05" value={scale} onChange={e => applyScale(e.target.value)} className="w-full" />
+            </div>
+
+            {/* Rotation */}
+            <div>
+              <div className="flex items-center justify-between">
+                <ControlLabel>rotate</ControlLabel>
+                <span className="text-[11px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">{rotation}°</span>
+              </div>
+              <input type="range" min="-180" max="180" step="1" value={rotation} onChange={e => applyRotation(e.target.value)} className="w-full" />
+            </div>
+
+            {/* Color */}
+            {isText && (
+              <div>
+                <ControlLabel>text color</ControlLabel>
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {PIPER_COLORS.map(c => (
+                    <button
+                      key={c}
+                      className={`h-7 w-7 rounded-full border transition-all ${color === c ? 'scale-110 border-[var(--color-oxblood)] ring-2 ring-[var(--color-paper)]' : 'border-transparent'}`}
+                      style={{ background: c }}
+                      onClick={() => applyColor(c)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {isText && (
+            <div className="flex flex-col gap-4">
+              <ControlLabel>font family</ControlLabel>
+              <div className="flex h-[200px] flex-col gap-1 overflow-y-auto rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-2">
+                {FONTS.map(f => {
+                  const cleanName = f.family.split(',')[0].replace(/['"]/g, '').trim();
+                  const isActive = fontFamily === cleanName || selectedObject.fontFamily === cleanName;
+                  return (
+                    <button
+                      key={f.id}
+                      className={`rounded-lg border px-3 py-2 text-left text-[14px] transition-all ${isActive ? 'border-[var(--color-sepia)] bg-[var(--color-cream)]' : 'border-transparent hover:bg-[var(--color-bone)]'}`}
+                      style={{ fontFamily: f.family }}
+                      onClick={() => applyFont(f.family)}
+                    >
+                      {f.displayLabel}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="h-px w-full bg-[var(--color-border-soft)]" />
+
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <ControlLabel>layering</ControlLabel>
+            <div className="grid grid-cols-2 gap-2">
+              {[
+                { label: 'fwd', action: onBringForward },
+                { label: 'bwd', action: onSendBackward },
+                { label: 'front', action: onBringToFront },
+                { label: 'back', action: onSendToBack },
+              ].map(({ label, action }) => (
+                <button key={label} onClick={action} className="h-11 rounded-lg border border-[var(--color-border-soft)] bg-white text-[11px] font-bold uppercase tracking-widest text-[var(--color-ink)] transition-all hover:bg-[var(--color-paper-soft)] [font-family:var(--font-typewriter)]">
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col justify-end gap-2">
+            <ControlLabel>actions</ControlLabel>
+            <button onClick={onDuplicate} className="h-11 rounded-lg border border-[var(--color-border-soft)] bg-white text-[11px] font-bold uppercase tracking-widest text-[var(--color-ink)] [font-family:var(--font-typewriter)]">duplicate item</button>
+            <button onClick={onRemove} className="h-11 rounded-lg border border-[var(--color-piper-red)] text-[11px] font-bold uppercase tracking-widest text-[var(--color-piper-red)] [font-family:var(--font-typewriter)]">delete item</button>
+          </div>
+        </div>
+      </motion.div>
     </AnimatePresence>
   );
 }

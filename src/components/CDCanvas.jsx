@@ -11,6 +11,7 @@ import { exportCanvasAsPng } from '../utils/exportCanvas';
 export default function CDCanvas({
   activeTool,
   activeColor,
+  activeFont,
   activeSticker,
   brushSize,
   cdColor,
@@ -18,6 +19,7 @@ export default function CDCanvas({
   onSelectionCleared,
   onCanvasReady,
   onUndoRedoChange,
+  isMobile = false,
 }) {
   const containerRef = useRef(null);
   const canvasElRef  = useRef(null);
@@ -55,6 +57,7 @@ export default function CDCanvas({
     },
     activeTool,
     activeColor,
+    activeFont,
     brushSize,
     cdColor,
   });
@@ -212,18 +215,21 @@ export default function CDCanvas({
         position: 'relative',
         width: '100%',
         aspectRatio: '1/1',
-        maxWidth: window.innerWidth < 768 ? '90vw' : 'min(400px, calc(100vh - 240px))',
-        maxHeight: window.innerWidth < 768 ? '90vw' : 'min(400px, calc(100vh - 240px))',
+        maxWidth: isMobile ? '90vw' : 'min(500px, calc(100vh - 280px))',
         margin: '0 auto',
+        flex: '0 0 auto',
+        userSelect: 'none',
+        borderRadius: '50%',
+        overflow: 'hidden',
       }}
     >
       {/* Background DOM layers */}
       <CDBase color={cdColor} />
       
       {/* Holographic overlay */}
-      <div className="cd-holo" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1 }} />
+      <div className="cd-holo" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1, borderRadius: '50%' }} />
 
-      {/* Fabric canvas */}
+      {/* Fabric canvas - Styled via .canvas-container in CSS for absolute fit */}
       <canvas
         ref={canvasElRef}
         style={{
@@ -254,9 +260,10 @@ function CDBase({ color }) {
         borderRadius: '50%',
         boxShadow: '0 12px 34px rgba(0,0,0,0.18), 0 3px 10px rgba(0,0,0,0.10)',
         overflow: 'hidden',
+        zIndex: 0,
       }}
     >
-      <img src="/cd.png" alt="CD Base" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      <img src="/cd.png" alt="CD Base" style={{ width: '100%', height: '100%', objectFit: 'fill', borderRadius: '50%' }} />
       
       {/* Custom Color Overlay */}
       {color && color !== '#ffffff' && color !== 'transparent' && (
@@ -280,15 +287,15 @@ function CDHole() {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '7.4%',
-        height: '7.4%',
-        minWidth: 18,
-        minHeight: 18,
+        width: '7.6%',
+        height: '7.6%',
+        minWidth: 16,
+        minHeight: 16,
         borderRadius: '50%',
         background: 'radial-gradient(circle at 38% 34%, #2a2624 0%, #171311 58%, #0f0c0b 100%)',
         boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.72), 0 0 0 1px rgba(255,255,255,0.12), 0 0 0 4px rgba(155,170,188,0.12)',
         pointerEvents: 'none',
-        zIndex: 10,
+        zIndex: 5,
       }}
     />
   );

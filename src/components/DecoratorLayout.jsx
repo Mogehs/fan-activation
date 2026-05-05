@@ -11,10 +11,11 @@ import EmailGateModal from './EmailGateModal';
 import { COLOR_STORIES } from '../data/colorStories';
 import { useColorStory } from '../hooks/useColorStory';
 import { FONTS } from '../data/fonts';
-import { shareOrDownload } from '../utils/exportCanvas';
+import { sharePng, downloadPng } from '../utils/exportCanvas';
+import { Mail, Sliders, Download, Share2, Plus, X } from 'lucide-react';
 
 export default function DecoratorLayout() {
-  const [activeTool,  setActiveTool]  = useState('select');
+  const [activeTool,  setActiveTool]  = useState('draw');
   const [selectedObj, setSelectedObj] = useState(null);
   const [brushColor,  setBrushColor]  = useState('#B83030');
   const [brushSize,   setBrushSize]   = useState(4);
@@ -139,7 +140,7 @@ export default function DecoratorLayout() {
     if (!unlocked) {
       setShowModal(true);
     } else {
-      if (png) shareOrDownload(png);
+      if (png) downloadPng(png);
     }
   }, [canvasApi, unlocked]);
 
@@ -149,7 +150,11 @@ export default function DecoratorLayout() {
   }, []);
 
   const handleDownload = useCallback(() => {
-    if (pendingPng) shareOrDownload(pendingPng);
+    if (pendingPng) downloadPng(pendingPng);
+  }, [pendingPng]);
+
+  const handleShare = useCallback(() => {
+    if (pendingPng) sharePng(pendingPng);
   }, [pendingPng]);
 
   const handleToolChange = useCallback((tool) => {
@@ -202,6 +207,7 @@ export default function DecoratorLayout() {
             <CDCanvas
               activeTool={activeTool}
               activeColor={activeTool === 'draw' ? brushColor : activeColor}
+              activeFont={activeFont}
               activeSticker={activeSticker}
               brushSize={brushSize}
               cdColor={cdBaseColor}
@@ -212,6 +218,7 @@ export default function DecoratorLayout() {
               onSelectionCleared={() => setSelectedObj(null)}
               onCanvasReady={handleCanvasReady}
               onUndoRedoChange={handleUndoRedoChange}
+              isMobile={isMobile}
             />
 
             {/* Mobile Action Buttons */}
@@ -219,15 +226,15 @@ export default function DecoratorLayout() {
               <div className="absolute bottom-4 right-4 z-[10] flex flex-col gap-3">
                 <button
                   onClick={() => setShowActionsMenu(!showActionsMenu)}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-ink)] text-white shadow-xl"
+                  className={`flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-ink)] text-white shadow-xl transition-all ${showActionsMenu ? 'rotate-0' : 'rotate-0'}`}
                 >
-                  {showActionsMenu ? '✕' : '✦'}
+                  {showActionsMenu ? <X size={20} strokeWidth={2.5} /> : <Plus size={24} strokeWidth={2.5} />}
                 </button>
                 <button
                   onClick={() => setShowMobileSettings(!showMobileSettings)}
-                  className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-oxblood)] text-white shadow-xl"
+                  className={`flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-oxblood)] text-white shadow-xl transition-all ${showMobileSettings ? 'rotate-90' : 'rotate-0'}`}
                 >
-                  {showMobileSettings ? '✕' : '⚙'}
+                  {showMobileSettings ? <X size={20} strokeWidth={2.5} /> : <Sliders size={20} strokeWidth={2.5} />}
                 </button>
               </div>
             )}
@@ -318,7 +325,7 @@ export default function DecoratorLayout() {
                   onClick={() => setShowModal(true)}
                   className="flex h-10 items-center justify-center gap-2 rounded-lg border border-[var(--color-sepia)] bg-[var(--color-paper-soft)] px-3 text-[10px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-all [font-family:var(--font-hand)]"
                 >
-                  ✉ SUBSCRIBE
+                  <Mail size={14} /> SUBSCRIBE
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -326,22 +333,20 @@ export default function DecoratorLayout() {
                   onClick={handleSaveDisc}
                   className="flex h-10 items-center justify-center gap-2 rounded-lg bg-gradient-to-br from-[var(--color-oxblood)] to-[var(--color-piper-red)] px-3 text-[10px] font-medium uppercase tracking-wider text-white shadow-md transition-all [font-family:var(--font-hand)]"
                 >
-                  ↓ SAVE PNG
+                  <Download size={14} /> SAVE PNG
                 </motion.button>
               </div>
-              <motion.button
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
-                onClick={async () => {
-                   if (canvasApi) {
-                     const png = await canvasApi.exportPng?.();
-                     if (png) shareOrDownload(png);
-                   }
-                }}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border-soft)] bg-white px-3 text-[10px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-all [font-family:var(--font-hand)]"
-              >
-                ✦ SHARE WITH FRIENDS
-              </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                  onClick={async () => {
+                    const png = await canvasApi?.exportPng?.();
+                    if (png) sharePng(png);
+                  }}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-[var(--color-border-soft)] bg-white px-3 text-[10px] font-medium uppercase tracking-wider text-[var(--color-ink)] transition-all [font-family:var(--font-hand)]"
+                >
+                  <Share2 size={14} /> SHARE WITH FRIENDS
+                </motion.button>
             </div>
           </div>
         </div>
@@ -349,7 +354,7 @@ export default function DecoratorLayout() {
 
       {/* Mobile Sticker Tray (Only when tool is stickers) */}
       {isMobile && activeTool === 'stickers' && !showMobileSettings && (
-        <div className="relative z-[10] h-40 shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)]">
+        <div className="relative z-[10] h-auto shrink-0 border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] pb-2">
           <StickerTray
             onAddSticker={handleAddSticker}
             activeColor={activeColor}
@@ -368,14 +373,14 @@ export default function DecoratorLayout() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowMobileSettings(false)}
-              className="fixed inset-0 z-[40] bg-black/20 backdrop-blur-[2px]"
+              className="fixed inset-0 z-[40] bg-transparent"
             />
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed inset-x-0 bottom-0 z-[50] flex max-h-[85vh] flex-col rounded-t-[32px] border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] shadow-[0_-8px_40px_rgba(0,0,0,0.15)]"
+              className="fixed inset-x-0 bottom-0 z-[50] flex h-fit max-h-[40vh] flex-col rounded-t-[32px] border-t border-[var(--color-border-soft)] bg-[var(--color-paper)] shadow-[0_-12px_40px_rgba(0,0,0,0.1)]"
             >
               {/* Drag Handle / Close Bar */}
               <div className="relative flex w-full shrink-0 justify-center py-4" onClick={() => setShowMobileSettings(false)}>
@@ -386,11 +391,11 @@ export default function DecoratorLayout() {
                   onClick={() => setShowMobileSettings(false)}
                   className="absolute right-6 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--color-paper-soft)] text-[var(--color-ink-muted)] hover:text-[var(--color-ink)]"
                 >
-                  ✕
+                  <X size={18} />
                 </button>
               </div>
             
-            <div className="flex-1 overflow-y-auto pb-12">
+            <div className="flex-1 overflow-y-auto pb-4">
               <RightPanel
                 activeTool={activeTool}
                 activeStory={activeStory}
@@ -443,22 +448,20 @@ export default function DecoratorLayout() {
             >
               <button
                 onClick={() => { setShowModal(true); setShowActionsMenu(false); }}
-                className="flex h-12 items-center gap-3 rounded-full bg-white px-5 text-[12px] font-medium uppercase tracking-widest text-[var(--color-ink)] shadow-xl [font-family:var(--font-hand)]"
+                className="flex h-12 items-center gap-3 rounded-full bg-white px-5 text-[12px] font-bold uppercase tracking-widest text-[var(--color-ink)] shadow-xl [font-family:var(--font-typewriter)]"
               >
-                ✉ Subscribe
+                <Mail size={18} /> Subscribe
               </button>
               <button
                 onClick={() => { handleSaveDisc(); setShowActionsMenu(false); }}
-                className="flex h-12 items-center gap-3 rounded-full bg-[var(--color-oxblood)] px-5 text-[12px] font-medium uppercase tracking-widest text-white shadow-xl [font-family:var(--font-hand)]"
+                className="flex h-12 items-center gap-3 rounded-full bg-[var(--color-oxblood)] px-5 text-[12px] font-bold uppercase tracking-widest text-white shadow-xl [font-family:var(--font-typewriter)]"
               >
-                ↓ Save PNG
+                <Download size={18} /> Save PNG
               </button>
               <button
                 onClick={async () => {
-                  if (canvasApi) {
-                    const png = await canvasApi.exportPng?.();
-                    if (png) shareOrDownload(png);
-                  }
+                  const png = await canvasApi?.exportPng?.();
+                  if (png) sharePng(png);
                   setShowActionsMenu(false);
                 }}
                 className="flex h-12 items-center gap-3 rounded-full bg-white px-5 text-[12px] font-medium uppercase tracking-widest text-[var(--color-ink)] shadow-xl [font-family:var(--font-hand)]"
@@ -480,7 +483,12 @@ export default function DecoratorLayout() {
       {/* Email gate modal */}
       <EmailGateModal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
+        onClose={() => {
+          setShowModal(false);
+          // If they close the modal without succeeding, clear pending files to be safe
+          setPendingPng(null);
+          setPendingSvg(null);
+        }}
         onSuccess={handleModalSuccess}
       />
 
@@ -489,18 +497,7 @@ export default function DecoratorLayout() {
         isOpen={unlocked && !!pendingPng}
         onClose={() => { setPendingPng(null); setPendingSvg(null); }}
         onDownload={handleDownload}
-        onDownloadSvg={() => {
-          if (pendingSvg) {
-            const blob = new Blob([pendingSvg], { type: 'image/svg+xml' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `piper-connolly-cd-${Date.now()}.svg`;
-            a.click();
-            URL.revokeObjectURL(url);
-          }
-        }}
-        onShare={handleDownload}
+        onShare={handleShare}
       />
     </motion.div>
   );

@@ -28,8 +28,8 @@ export default function DoodleToolPanel({
         {/* Left Column: Brush Color */}
         <div className="flex flex-col gap-3">
           <div>
-            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">brush color</p>
-            <div className="mb-2 flex flex-wrap gap-1">
+            <p className="mb-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">brush color</p>
+            <div className="mb-2 flex flex-wrap gap-1.5">
               {BRUSH_COLORS.map(c => (
                 <button
                   key={c}
@@ -60,12 +60,12 @@ export default function DoodleToolPanel({
         <div className="flex flex-col gap-3">
           <div>
             <div className="flex items-center justify-between">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-[0.08em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">brush size</p>
-              <span className="text-[10px] text-[var(--color-ink-muted)] [font-family:var(--font-hand)]">
+              <p className="mb-1.5 text-[12px] font-bold uppercase tracking-[0.12em] text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">brush size</p>
+              <span className="text-[11px] font-bold text-[var(--color-ink-muted)] [font-family:var(--font-typewriter)]">
                 {brushSize}px
               </span>
             </div>
-            <div className="flex h-[110px] flex-col items-center justify-center gap-3 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3">
+            <div className={`flex ${isMobile ? 'h-[70px]' : 'h-[110px]'} flex-col items-center justify-center gap-3 rounded-xl border border-[var(--color-border-soft)] bg-[var(--color-paper-soft)] p-3`}>
               {/* Preview dot */}
               <div className="flex items-center justify-center" style={{ height: 40 }}>
                 <div style={{
@@ -99,13 +99,13 @@ export default function DoodleToolPanel({
       <div className="grid grid-cols-2 gap-2">
         <button
           onClick={onUndoStroke}
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-[rgba(250,246,240,0.8)] px-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-charcoal)] transition-all duration-200 hover:border-[var(--color-sepia)] hover:bg-[var(--color-paper)] [font-family:var(--font-hand)]"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-[rgba(250,246,240,0.8)] px-2 text-[12px] font-bold uppercase tracking-wider text-[var(--color-ink)] transition-all duration-200 hover:border-[var(--color-ink-muted)] hover:bg-[var(--color-paper)] [font-family:var(--font-typewriter)]"
         >
           ↩ undo stroke
         </button>
         <button
           onClick={onClearDoodles}
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--color-sepia)] bg-transparent px-2 text-[10px] font-medium uppercase tracking-wider text-[var(--color-sepia)] transition-all duration-200 hover:bg-[var(--color-oxblood)] hover:text-[var(--color-cream)] [font-family:var(--font-hand)]"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-[var(--color-border-soft)] bg-transparent px-2 text-[12px] font-bold uppercase tracking-wider text-[var(--color-ink-muted)] transition-all duration-200 hover:bg-[var(--color-oxblood)] hover:text-[var(--color-cream)] [font-family:var(--font-typewriter)]"
         >
           clear all
         </button>

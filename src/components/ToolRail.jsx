@@ -22,11 +22,6 @@ const TOOLS = [
     icon: Pencil,
   },
   {
-    id: 'erase',
-    label: 'Erase',
-    icon: Eraser,
-  },
-  {
     id: 'text',
     label: 'Text',
     icon: Type,
@@ -97,17 +92,6 @@ export default function ToolRail({ activeTool, onToolChange, mobile = false }) {
       {/* Divider */}
       {!mobile && <div className="my-3 h-px w-[80%] bg-[var(--color-border-soft)]" />}
 
-      {/* Help hint */}
-      {!mobile && (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="px-1 py-1 text-center text-[9px] font-medium uppercase leading-[1.2] text-[var(--color-ink-muted)] opacity-50 [font-family:var(--font-hand)]"
-        >
-          del to<br/>remove
-        </motion.p>
-      )}
     </div>
   );
 }

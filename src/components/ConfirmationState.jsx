@@ -1,5 +1,4 @@
-// ConfirmationState.jsx — Post-signup unlock + share prompt (modal overlay)
-
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 function ModalDoodle({ type, size = 40, color = 'var(--color-sepia)', style }) {
@@ -20,7 +19,21 @@ function ModalDoodle({ type, size = 40, color = 'var(--color-sepia)', style }) {
   );
 }
 
-export default function ConfirmationState({ isOpen, onDownload, onDownloadSvg, onShare, onClose }) {
+export default function ConfirmationState({ isOpen, onDownload, onShare, onClose }) {
+  const [downloading, setDownloading] = useState(false);
+
+  // Reset status when modal closes
+  useEffect(() => {
+    if (!isOpen) setDownloading(false);
+  }, [isOpen]);
+
+  const handleDownloadClick = async () => {
+    setDownloading(true);
+    await onDownload();
+    // Keep the "starting" message for 2 seconds for visibility
+    setTimeout(() => setDownloading(false), 2000);
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -67,16 +80,16 @@ export default function ConfirmationState({ isOpen, onDownload, onDownloadSvg, o
             {/* Success Icon */}
             <motion.div
               initial={{ scale: 0, rotate: -20 }}
-              animate={{ scale: 1, rotate: 0 }}
+              animate={{ scale: 1.2, rotate: 0 }}
               transition={{ delay: 0.2, type: 'spring', stiffness: 400 }}
-              style={{ fontSize: 56, marginBottom: 20 }}
+              style={{ fontSize: 64, marginBottom: 20 }}
             >
               💿
             </motion.div>
 
             <h2 style={{
               fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(28px, 8vw, 36px)',
+              fontSize: 'clamp(32px, 9vw, 42px)',
               fontStyle: 'italic',
               fontWeight: 400,
               color: 'var(--color-ink)',
@@ -87,14 +100,17 @@ export default function ConfirmationState({ isOpen, onDownload, onDownloadSvg, o
             </h2>
 
             <p style={{
-              fontFamily: 'var(--font-hand)',
-              fontSize: 18,
-              color: 'var(--color-sepia)',
+              fontFamily: 'var(--font-typewriter)',
+              fontSize: 16,
+              fontWeight: 700,
+              color: 'var(--color-ink-muted)',
               marginBottom: 32,
               lineHeight: 1.5,
+              textTransform: 'lowercase',
+              letterSpacing: '0.05em',
             }}>
-              download unlocked. don't forget to<br />
-              <span style={{ color: 'var(--color-oxblood)', fontWeight: 600 }}>tag @hernameispiperconnolly</span> ✦
+              download unlocked ✦<br />
+              <span style={{ color: 'var(--color-oxblood)', fontWeight: 700 }}>tag @hernameispiperconnolly</span>
             </p>
 
             <div className="flex flex-col gap-3">
@@ -102,71 +118,78 @@ export default function ConfirmationState({ isOpen, onDownload, onDownloadSvg, o
               <motion.button
                 whileHover={{ scale: 1.02, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={onDownload}
-                className="group relative inline-flex w-full items-center justify-center overflow-hidden rounded-[20px] bg-[#111] px-4 py-4 text-[16px] text-[var(--color-cream)] shadow-xl transition-all duration-300 hover:shadow-2xl"
-                style={{ fontFamily: 'var(--font-hand)', letterSpacing: '0.05em' }}
+                onClick={handleDownloadClick}
+                disabled={downloading}
+                className="group relative inline-flex w-full items-center justify-center overflow-hidden rounded-[20px] bg-[#111] px-4 py-4 text-[18px] text-[var(--color-cream)] shadow-xl transition-all duration-300 hover:shadow-2xl disabled:opacity-80"
+                style={{ fontFamily: 'var(--font-typewriter)', letterSpacing: '0.05em', fontWeight: 700 }}
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  download image (PNG)
+                  {downloading ? (
+                    <>
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                        </svg>
+                      </motion.div>
+                      starting download...
+                    </>
+                  ) : (
+                    <>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      download image (PNG)
+                    </>
+                  )}
                 </span>
-                <div className="absolute inset-0 translate-y-full bg-gradient-to-tr from-[var(--color-piper-red)] to-[var(--color-oxblood)] transition-transform duration-300 group-hover:translate-y-0" />
+                {!downloading && <div className="absolute inset-0 translate-y-full bg-gradient-to-tr from-[var(--color-piper-red)] to-[var(--color-oxblood)] transition-transform duration-300 group-hover:translate-y-0" />}
               </motion.button>
 
-              {/* SVG Download Button */}
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onDownloadSvg}
-                className="inline-flex w-full items-center justify-center rounded-[20px] border border-[var(--color-oxblood)] bg-white/50 px-4 py-3 text-[14px] font-medium text-[var(--color-oxblood)] transition-all duration-200 hover:bg-[rgba(107,26,26,0.05)] [font-family:var(--font-hand)]"
-              >
-                <span className="flex items-center gap-2">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><path d="m16 12-4 4-4-4"/><path d="M12 8v8"/>
-                  </svg>
-                  get vector artwork (SVG)
-                </span>
-              </motion.button>
-            </div>
-
-            {/* Share Button (mobile only if supported) */}
-            {typeof navigator !== 'undefined' && navigator.share && (
+              {/* Share Button */}
               <motion.button
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onShare}
-                className="mb-4 inline-flex w-full items-center justify-center rounded-[20px] border border-[var(--color-border-soft)] bg-white/50 px-4 py-3 text-[16px] font-medium text-[var(--color-ink)] transition-all duration-200 hover:bg-white [font-family:var(--font-hand)]"
+                className="inline-flex w-full items-center justify-center rounded-[20px] border border-[var(--color-border-soft)] bg-white px-4 py-3 text-[16px] font-bold text-[var(--color-ink)] transition-all duration-200 hover:bg-[var(--color-paper-soft)] [font-family:var(--font-typewriter)] uppercase tracking-wider"
               >
-                ↗ share with friends
+                <span className="flex items-center gap-2">
+                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+                  </svg>
+                  share with friends
+                </span>
               </motion.button>
-            )}
+            </div>
 
             {/* Social Link */}
             <p style={{
-              fontFamily: 'var(--font-hand)',
-              fontSize: 14,
-              color: 'var(--color-ink-muted)',
-              opacity: 0.6,
+              fontFamily: 'var(--font-typewriter)',
+              fontSize: 13,
+              fontWeight: 700,
+              color: 'var(--color-sepia)',
               lineHeight: 1.5,
-              marginTop: 10
+              marginTop: 20,
+              textTransform: 'lowercase',
+              letterSpacing: '0.1em',
             }}>
               can't wait to see what you made 🎶
             </p>
 
             {/* Branding Watermark */}
             <div style={{
-              marginTop: 28,
+              marginTop: 32,
               paddingTop: 16,
               borderTop: '1px solid var(--color-border-soft)',
               fontFamily: 'var(--font-display)',
-              fontSize: 13,
+              fontSize: 14,
               fontStyle: 'italic',
               color: 'var(--color-ink-muted)',
-              opacity: 0.3,
+              opacity: 0.4,
               letterSpacing: '0.05em',
             }}>
               beautiful life — june 5
@@ -177,4 +200,3 @@ export default function ConfirmationState({ isOpen, onDownload, onDownloadSvg, o
     </AnimatePresence>
   );
 }
-

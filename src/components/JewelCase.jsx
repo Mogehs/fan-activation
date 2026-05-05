@@ -332,10 +332,10 @@ export default function JewelCase({ onOpen, isOpen }) {
                    justifyContent: 'center',
                    textAlign: 'center'
                  }}>
-                   <span style={{ fontFamily: 'var(--font-hand)', fontSize: 'clamp(12px, 2vw, 15px)', color: 'var(--color-sepia)', opacity: 0.6, letterSpacing: '0.6em', marginBottom: '10%', textTransform: 'uppercase' }}>PIPER CONNOLLY</span>
+                   <span style={{ fontFamily: 'var(--font-typewriter)', fontSize: 'clamp(12px, 1.8vw, 13px)', color: 'var(--color-ink-muted)', fontWeight: 700, letterSpacing: '0.4em', marginBottom: '10%', textTransform: 'lowercase' }}>piper connolly</span>
                    <span style={{ fontFamily: 'var(--font-display)', fontSize: 'clamp(28px, 6vw, 48px)', fontStyle: 'italic', color: '#111', lineHeight: 0.85 }}>beautiful<br/>life</span>
                    <div style={{ width: '15%', height: 1, background: 'var(--color-oxblood)', opacity: 0.15, margin: '15% 0' }} />
-                   <span style={{ fontFamily: 'var(--font-hand)', fontSize: 'clamp(14px, 2vw, 16px)', color: 'var(--color-oxblood)', opacity: 0.8 }}>TAP TO OPEN ✦</span>
+                   <span style={{ fontFamily: 'var(--font-typewriter)', fontSize: 'clamp(14px, 1.8vw, 14px)', color: 'var(--color-ink)', fontWeight: 700, letterSpacing: '0.2em', textTransform: 'lowercase' }}>tap to open ✦</span>
                  </div>
               </div>
             </div>
