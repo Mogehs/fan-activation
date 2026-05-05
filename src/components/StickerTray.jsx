@@ -22,8 +22,8 @@ export default function StickerTray({ onAddSticker, activeColor, activeSticker }
         </p>
       </div>
 
-      {/* Scrollable sticker grid (2 rows on mobile) */}
-      <div className="grid grid-flow-col grid-rows-2 gap-x-2.5 gap-y-2 overflow-x-auto px-3 py-2 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]">
+      {/* Scrollable sticker grid (2 rows on mobile, 1 row on desktop) */}
+      <div className="grid grid-flow-col grid-rows-2 md:grid-rows-1 gap-x-2.5 gap-y-2 overflow-x-auto px-3 py-2 snap-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [scroll-snap-type:x_mandatory]">
         {STICKERS.map((sticker, i) => (
           <motion.button
             key={sticker.id}
