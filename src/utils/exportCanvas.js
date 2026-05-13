@@ -93,34 +93,50 @@ export function downloadPng(dataUrl, filename = 'my-beautiful-life-cd.png') {
  * @param {string} dataUrl
  */
 export async function sharePng(dataUrl) {
-  if (navigator.share && navigator.canShare) {
+  const shareText = `i made my own beautiful life cd 💿\ndecorate your beautiful life here: ${window.location.href}`;
+
+  // 1. Always try to copy to clipboard as a backup
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(shareText);
+    }
+  } catch (err) {
+    console.warn("Clipboard copy failed before share", err);
+  }
+
+  // 2. Try native sharing
+  if (navigator.share) {
     try {
       const blob = await (await fetch(dataUrl)).blob();
       const file = new File([blob], 'my-beautiful-life-cd.png', { type: 'image/png' });
-      const shareText = `i made my own beautiful life cd 💿\ndecorate your beautiful life here: ${window.location.href}`;
-      
-      // Attempt to copy the text to clipboard automatically, as apps like Instagram 
-      // often strip the 'text' field when sharing a file via the OS share sheet.
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(shareText);
-        }
-      } catch (err) {
-        console.warn("Clipboard copy failed before share", err);
-      }
 
-      if (navigator.canShare({ files: [file] })) {
+      // Try sharing with file if supported (Mobile / Safari / Some Desktops)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: 'beautiful life — piper connolly',
           text: shareText,
         });
-        return 'shared';
+        return 'shared-file';
       }
+
+      // Fallback: Share just text/URL (Widely supported on Desktop Chrome/Edge)
+      // This ensures the native "Share" screen appears.
+      await navigator.share({
+        title: 'beautiful life — piper connolly',
+        text: shareText,
+        url: window.location.href
+      });
+      return 'shared-text';
+
     } catch (e) {
-      console.warn("Share failed, falling back to download", e);
+      console.warn("Share failed", e);
+      // If user cancelled, don't fall back to download
+      if (e.name === 'AbortError') return 'cancelled';
     }
   }
+
+  // 3. Last resort: Fallback to download if no sharing is available
   downloadPng(dataUrl);
   return 'downloaded';
 }

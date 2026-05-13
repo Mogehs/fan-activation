@@ -29,6 +29,7 @@ export default function DecoratorLayout() {
   const [unlocked, setUnlocked] = useState(false);
   const [pendingPng, setPendingPng] = useState(null);
   const [pendingSvg, setPendingSvg] = useState(null);
+  const [pendingAction, setPendingAction] = useState(null); // 'save' | 'share' | null
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   const [canvasApi, setCanvasApi] = useState(null);
@@ -137,6 +138,7 @@ export default function DecoratorLayout() {
     const svg = await canvasApi.exportSvg?.();
     setPendingPng(png);
     setPendingSvg(svg);
+    setPendingAction('save');
     if (!unlocked) {
       setShowModal(true);
     } else {
@@ -149,19 +151,35 @@ export default function DecoratorLayout() {
     if (!canvasApi) return;
     const png = await canvasApi.exportPng?.();
     const svg = await canvasApi.exportSvg?.();
-    setPendingPng(png);
-    setPendingSvg(svg);
+    
+    setPendingAction('share');
+    
     if (!unlocked) {
+      setPendingPng(png);
+      setPendingSvg(svg);
       setShowModal(true);
     } else {
-      if (png) sharePng(png);
+      // Direct share, don't set pendingPng so confirmation modal doesn't show
+      if (png) {
+        sharePng(png);
+        setPendingPng(null);
+        setPendingAction(null);
+      }
     }
   }, [canvasApi, unlocked]);
 
   const handleModalSuccess = useCallback(() => {
     setShowModal(false);
     setUnlocked(true);
-  }, []);
+    
+    // If it was a share action, trigger share immediately and bypass confirmation modal
+    if (pendingAction === 'share' && pendingPng) {
+      sharePng(pendingPng);
+      setPendingPng(null);
+      setPendingAction(null);
+    }
+    // Note: for 'save', we leave pendingPng as is, which triggers the ConfirmationState modal
+  }, [pendingAction, pendingPng]);
 
   const handleDownload = useCallback(() => {
     if (pendingPng) downloadPng(pendingPng);
@@ -335,7 +353,6 @@ export default function DecoratorLayout() {
           {/* Global Actions card */}
           <div className="flex w-[320px] shrink-0 flex-col justify-center gap-2.5 border border-[var(--color-border-soft)] bg-[var(--color-paper)] p-3 rounded-2xl shadow-sm">
             <div className="flex flex-col gap-2">
-              <p className="text-[10px] font-medium uppercase tracking-[0.1em] text-[var(--color-charcoal)] [font-family:var(--font-hand)]">GLOBAL ACTIONS</p>
               <div className="grid grid-cols-2 gap-2">
                 <motion.button
                   whileHover={{ scale: 1.02 }}

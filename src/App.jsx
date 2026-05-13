@@ -19,15 +19,12 @@ function MainFlow() {
   const [caseOpen, setCaseOpen] = useState(false);
   const location = useLocation();
 
-  // Reset stage when returning to home if needed, but here we just start at HERO
-  // The user wants it to appear every time they visit.
-
   const handleOpenCase = () => {
     setCaseOpen(true);
     setStage(STAGES.CASE);
     setTimeout(() => {
       setStage(STAGES.DECORATOR);
-    }, 2400); // Matches the new GSAP opening + fade-out sequence duration
+    }, 2400);
   };
 
   const handleHeroCTA = () => {
